@@ -1,0 +1,26 @@
+name: hello
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: Who to greet
+        required: false
+        default: world
+      shout:
+        description: Uppercase the greeting
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say hello
+        run: |
+          msg="Hello, ${{ inputs.name }}!"
+          if [ "${{ inputs.shout }}" = "true" ]; then
+            msg=$(echo "$msg" | tr '[:lower:]' '[:upper:]')
+          fi
+          echo "$msg"

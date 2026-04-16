@@ -1,0 +1,10 @@
+{
+  "name": "action-run",
+  "description": "Trigger and monitor any GitHub Actions workflow by name, gather required inputs, and fix failures automatically.",
+  "version": "1.0.0",
+  "author": {
+    "name": "kolodkin"
+  },
+  "homepage": "https://github.com/kolodkin/aaiclick",
+  "keywords": ["github", "actions", "workflow", "ci"]
+}

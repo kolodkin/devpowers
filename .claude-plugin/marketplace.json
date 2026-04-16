@@ -1,0 +1,16 @@
+{
+  "name": "devpowers",
+  "owner": {
+    "name": "kolodkin"
+  },
+  "metadata": {
+    "description": "Developer productivity plugins for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "action-run",
+      "source": "./plugins/action-run",
+      "description": "Trigger and monitor any GitHub Actions workflow by name, gather required inputs, and fix failures automatically."
+    }
+  ]
+}
