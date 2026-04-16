@@ -1,0 +1,10 @@
+{
+  "name": "skill-zip",
+  "description": "Package a skill from a GitHub repo (or local path) into a zip ready to upload to claude.ai.",
+  "version": "1.0.0",
+  "author": {
+    "name": "kolodkin"
+  },
+  "homepage": "https://github.com/kolodkin/devpowers",
+  "keywords": ["skill", "zip", "claude.ai", "packaging", "github"]
+}

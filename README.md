@@ -14,6 +14,8 @@ Browse and install plugins to extend Claude Code with additional skills and capa
 ## Plugins
 
 - **action-run** — Trigger and monitor any GitHub Actions `workflow_dispatch` workflow by name, gather required inputs, and fix failures automatically.
+- **action-check** — Check the latest GitHub Actions workflow run, monitor in-progress runs, and report failures with logs.
+- **skill-zip** — Package a skill from a GitHub repo (or local path) into a zip ready to upload to claude.ai.
 
 ## References
 
