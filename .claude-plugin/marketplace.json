@@ -11,6 +11,11 @@
       "name": "action-run",
       "source": "./plugins/action-run",
       "description": "Trigger and monitor any GitHub Actions workflow by name, gather required inputs, and fix failures automatically."
+    },
+    {
+      "name": "action-check",
+      "source": "./plugins/action-check",
+      "description": "Check the latest GitHub Actions workflow run, monitor in-progress runs to completion, and report failures with logs."
     }
   ]
 }
