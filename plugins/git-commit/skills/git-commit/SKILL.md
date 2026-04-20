@@ -5,7 +5,7 @@ description: Create a git commit with staged changes, handling pre-commit hooks 
 
 # Git Commit Skill
 
-Create a git commit with the user's staged changes, following conventional commit format and handling pre-commit hook modifications safely.
+Create a git commit with the user's staged changes using the project's commit type convention, and handle pre-commit hook modifications safely.
 
 ## Invocation Format
 
@@ -20,28 +20,30 @@ Examples:
 /git-commit add user profile endpoint
 ```
 
-## Pre-commit Hook Context
-
-Some projects use pre-commit hooks that modify files during commit (formatting, linting, etc.). When hooks modify files, the commit fails and must be retried after re-staging.
-
 ## Step 1 — Inspect Staged Changes
 
-Run these in parallel to understand what's being committed:
+Run these in parallel:
 
 ```bash
-git status
-git diff --staged --stat
+git diff --staged --name-only
+git diff --staged
 ```
 
-If nothing is staged, stop and tell the user — do NOT run `git add` on their behalf.
+Use `--name-only` output as the authoritative list of originally staged files — you will need it verbatim if a pre-commit hook modifies files. Use the full staged diff to draft the commit message.
 
-Record the exact list of originally staged files. You will need it if a pre-commit hook modifies files.
+If the output of `--name-only` is empty, stop and tell the user nothing is staged — do NOT run `git add` on their behalf.
+
+If `git status` reveals a mid-rebase, mid-merge, mid-cherry-pick, or detached HEAD, stop and surface that to the user before committing.
 
 ## Step 2 — Determine the Commit Message
 
-If the user supplied a message in the invocation, use it as-is (only reformat to conventional style if it obviously fits a single type).
+If the user supplied a message in the invocation:
 
-Otherwise, analyze the staged diff and draft a message using conventional commit format:
+- If it already has a recognized type prefix (e.g. `feature:`, `bugfix:`), use it verbatim.
+- If it's a bare phrase, prepend the most appropriate type based on the staged diff (see types below).
+- Preserve any multi-line body the user provided.
+
+Otherwise, analyze the staged diff and draft a message using this project's type convention:
 
 - `feature:` — new features
 - `bugfix:` — bug fixes
@@ -58,15 +60,15 @@ Message structure:
 <optional longer description>
 ```
 
-Keep the subject line concise (ideally ≤72 chars). Focus on the "why" in the body when useful.
+Keep the subject line concise (target 50 chars, hard wrap at 72) and focus the body on the "why".
 
 ## Step 3 — Get User Approval
 
-Present the proposed commit message to the user and ask for approval before committing. Let them edit it if needed. **Do not** skip this step, even when the user supplied a message — confirm before creating the commit.
+Show the proposed message to the user and wait for approval before committing. Let them edit it. Skip this step only if the user supplied a complete message (subject + body, or an explicit "commit as-is" instruction).
 
 ## Step 4 — Create the Commit
 
-Use a HEREDOC so multi-line messages format correctly:
+Commit with a HEREDOC and chain the result display in the same call to save a round-trip:
 
 ```bash
 git commit -m "$(cat <<'EOF'
@@ -74,43 +76,35 @@ git commit -m "$(cat <<'EOF'
 
 <optional longer description>
 EOF
-)"
+)" && git log -1 --pretty=format:"%h %s%n%b"
 ```
 
-## Step 5 — Handle Pre-commit Hook Modifications
+## Step 5 — Handle Pre-commit Hook Failures
 
-If the commit **failed** because pre-commit hooks modified files:
+If the commit failed, inspect the hook output to decide which case applies.
 
-- The hooks ran BEFORE the commit was created, so no commit exists yet.
-- Re-stage **only the files that were originally staged** — not every modified file.
-- Do NOT use `git add -u` (stages all modified tracked files, including unrelated changes).
-- Do NOT use `--amend` (there is no commit to amend).
+### Case A: Hooks modified files (formatters, auto-fixers)
 
-Re-stage by explicit file list, then retry with the same message:
+No commit was created. Re-stage **only the files from Step 1's `--name-only` list** — not every modified file — and retry with the same message chained to `git log -1`:
 
 ```bash
 git add file1.py file2.py file3.py
 git commit -m "$(cat <<'EOF'
 <same commit message>
 EOF
-)"
+)" && git log -1 --pretty=format:"%h %s%n%b"
 ```
 
-If hooks modify files again, repeat once more. If they keep modifying files, stop and surface the issue to the user.
+Do NOT use `git add -u` (stages every modified tracked file, including unrelated changes). Do NOT use `--amend` (there is no commit to amend).
 
-## Step 6 — Show the Result
+If hooks modify files again on retry, try once more. If they keep modifying files after that, stop and surface the non-convergence to the user.
 
-After a successful commit, display it:
+### Case B: Hooks rejected the commit without modifying files (lint, type-check, test failures)
 
-```bash
-git log -1 --pretty=format:"%h %s%n%b"
-```
+Nothing to re-stage. Fix the underlying issue the hook reported, re-stage the fixed files, then retry Step 4. If the failure is in code you didn't touch, surface it to the user instead of silently patching unrelated files.
 
-## Important Notes
+## Notes
 
-- **NEVER** amend commits authored by someone else or already pushed.
-- If amending is unsafe, create a NEW commit instead.
-- **ALWAYS** use HEREDOC for multi-line commit messages.
-- **ALWAYS** get user approval before creating the commit.
-- Do **NOT** include "Generated with ..." footers or co-author trailers in commit messages unless the user explicitly asks for them.
-- Do **NOT** push after committing unless the user asks.
+- If amending would be unsafe (commit authored by someone else, or already pushed), create a NEW commit instead of amending.
+- Do NOT include "Generated with …" footers or co-author trailers unless the user asks.
+- Do NOT push after committing unless the user asks.
