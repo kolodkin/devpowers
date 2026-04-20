@@ -16,11 +16,6 @@
       "name": "action-check",
       "source": "./plugins/action-check",
       "description": "Check the latest GitHub Actions workflow run, monitor in-progress runs to completion, and report failures with logs."
-    },
-    {
-      "name": "skill-zip",
-      "source": "./plugins/skill-zip",
-      "description": "Package a skill from a GitHub repo (or local path) into a zip ready to upload to claude.ai."
     }
   ]
 }
