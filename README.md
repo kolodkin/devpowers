@@ -15,6 +15,8 @@ Browse and install plugins to extend Claude Code with additional skills and capa
 
 - **action-run** — Trigger and monitor any GitHub Actions `workflow_dispatch` workflow by name, gather required inputs, and fix failures automatically.
 - **action-check** — Check the latest GitHub Actions workflow run, monitor in-progress runs, and report failures with logs.
+- **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
+- **local-skill** — Download a single skill directory from a GitHub repository into the current project's `.claude/skills/`.
 
 ## References
 

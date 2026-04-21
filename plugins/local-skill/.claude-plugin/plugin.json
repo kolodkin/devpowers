@@ -1,0 +1,10 @@
+{
+  "name": "local-skill",
+  "description": "Download a single skill directory from a GitHub repository into the current project's .claude/skills/.",
+  "version": "1.0.0",
+  "author": {
+    "name": "kolodkin"
+  },
+  "homepage": "https://github.com/kolodkin/devpowers",
+  "keywords": ["skill", "download", "install", "local", "sparse-checkout"]
+}

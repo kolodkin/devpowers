@@ -21,6 +21,11 @@
       "name": "git-commit",
       "source": "./plugins/git-commit",
       "description": "Create a git commit with staged changes, handling pre-commit hooks automatically."
+    },
+    {
+      "name": "local-skill",
+      "source": "./plugins/local-skill",
+      "description": "Download a single skill directory from a GitHub repository into the current project's .claude/skills/."
     }
   ]
 }
