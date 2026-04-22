@@ -20,8 +20,7 @@ case "$NAME" in
   */*|..|.) echo "error: <skill-name> must be a bare directory name" >&2; exit 2 ;;
 esac
 
-DEST_DIR=".claude/skills/${NAME}"
-STAMP="${DEST_DIR}/.local-skill.stamp"
+STAMP=".claude/skills/${NAME}/.local-skill.stamp"
 
 if [[ ! -f "$STAMP" ]]; then
   echo "error: no stamp at ${STAMP} (skill wasn't installed via local-skill, or stamp was deleted)" >&2
@@ -30,7 +29,6 @@ fi
 
 repo=""
 path=""
-installed_at=""
 # shellcheck disable=SC1090
 source "$STAMP"
 
@@ -41,5 +39,5 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "updating ${NAME} from ${repo} (previous install: ${installed_at:-unknown})"
+echo "updating ${NAME} from ${repo}"
 exec bash "${SCRIPT_DIR}/download.sh" "$repo" "$path" --force

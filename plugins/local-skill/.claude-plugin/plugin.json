@@ -6,5 +6,5 @@
     "name": "kolodkin"
   },
   "homepage": "https://github.com/kolodkin/devpowers",
-  "keywords": ["skill", "download", "install", "local", "sparse-checkout"]
+  "keywords": ["skill", "download", "install", "local"]
 }
