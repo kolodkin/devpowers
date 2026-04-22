@@ -3,20 +3,24 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: download.sh <repo> <skill-path> [--force]
+Usage: download.sh <repo> <skill-path> [--force] [--dry-run]
 
   <repo>        owner/repo or https://github.com/owner/repo(.git)
   <skill-path>  path to the skill directory within the repo
   --force       overwrite an existing destination directory
+  --dry-run     fetch the tree and print what would be installed; do not
+                create or modify any files on disk
 USAGE
   exit 2
 }
 
 FORCE=0
+DRY_RUN=0
 ARGS=()
 for arg in "$@"; do
   case "$arg" in
     --force) FORCE=1 ;;
+    --dry-run) DRY_RUN=1 ;;
     -h|--help) usage ;;
     *) ARGS+=("$arg") ;;
   esac
@@ -53,8 +57,15 @@ done
 DEST_NAME="$(basename "$SKILL_PATH")"
 DEST_DIR=".claude/skills/${DEST_NAME}"
 
+DEST_STATUS=""
 if [[ -e "$DEST_DIR" ]]; then
-  if [[ $FORCE -eq 1 ]]; then
+  if [[ $DRY_RUN -eq 1 ]]; then
+    if [[ $FORCE -eq 1 ]]; then
+      DEST_STATUS="exists; would overwrite (--force)"
+    else
+      DEST_STATUS="exists; actual install would fail without --force"
+    fi
+  elif [[ $FORCE -eq 1 ]]; then
     rm -rf "$DEST_DIR"
   else
     echo "error: ${DEST_DIR} already exists (pass --force to overwrite)" >&2
@@ -94,20 +105,32 @@ for mode, full, rel in matches:
     print(f"{mode}\t{full}\t{rel}")
 PY
 
+FILE_COUNT=$(wc -l < "$FILES_TSV" | tr -d ' ')
+
+if [[ $DRY_RUN -eq 1 ]]; then
+  echo "dry run: would install ${FILE_COUNT} file(s) from ${REPO_SLUG}/${SKILL_PATH} -> ${DEST_DIR}"
+  [[ -n "$DEST_STATUS" ]] && echo "note: destination ${DEST_STATUS}"
+  while IFS=$'\t' read -r mode _ rel; do
+    case "$mode" in
+      100755|100775) echo "  ${rel} (executable)" ;;
+      *)             echo "  ${rel}" ;;
+    esac
+  done < "$FILES_TSV"
+  exit 0
+fi
+
 mkdir -p "$DEST_DIR"
 CONFIG="${TMP_DIR}/curl-config"
 EXEC_LIST="${TMP_DIR}/exec-list"
 : > "$CONFIG"
 : > "$EXEC_LIST"
 
-FILE_COUNT=0
 while IFS=$'\t' read -r mode full rel; do
   out_file="${DEST_DIR}/${rel}"
   mkdir -p "$(dirname "$out_file")"
   printf 'url = "https://raw.githubusercontent.com/%s/HEAD/%s"\noutput = "%s"\n' \
     "$REPO_SLUG" "$full" "$out_file" >> "$CONFIG"
   case "$mode" in 100755|100775) printf '%s\n' "$out_file" >> "$EXEC_LIST" ;; esac
-  FILE_COUNT=$((FILE_COUNT + 1))
 done < "$FILES_TSV"
 
 PARALLEL_FLAGS=()
