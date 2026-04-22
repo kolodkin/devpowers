@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "devpowers",
-      "source": "./plugins/devpowers",
+      "source": "./",
       "description": "Developer productivity skills: GitHub Actions runner and checker, git commit helper, and local skill installer."
     }
   ]

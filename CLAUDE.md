@@ -1,24 +1,21 @@
 # CLAUDE.md
 
-This repository is a Claude Code **plugin marketplace**. Plugins live under `plugins/<name>/` and are catalogued in `.claude-plugin/marketplace.json`.
+This repository is a Claude Code **plugin** that is also its own single-plugin marketplace. The repo root *is* the plugin root: `.claude-plugin/plugin.json` is the plugin manifest, and `.claude-plugin/marketplace.json` catalogs it with `"source": "./"`. Component directories (`skills/`, `commands/`, `agents/`, `hooks/`) live at the repo root.
 
 ## Layout
 
 ```
 .claude-plugin/
-  marketplace.json              # marketplace catalog
-plugins/
-  <plugin-name>/
-    .claude-plugin/
-      plugin.json               # plugin manifest
-    skills/<skill-name>/
-      SKILL.md                  # skill entry point
-      ...                       # optional scripts, references
+  marketplace.json              # marketplace catalog (source: "./")
+  plugin.json                   # plugin manifest
+skills/<skill-name>/
+  SKILL.md                      # skill entry point
+  ...                           # optional scripts, references
 ```
 
 ## Conventions
 
-- Reference bundled scripts from SKILL.md using `${CLAUDE_PLUGIN_ROOT}/...` so paths resolve correctly inside the plugin cache (`~/.claude/plugins/cache`). This variable is substituted inline in skill content, hook commands, and MCP/LSP configs, and is also exported as an environment variable to subprocesses.
+- Reference bundled scripts from SKILL.md using `${CLAUDE_PLUGIN_ROOT}/...` so paths resolve correctly inside the plugin cache (`~/.claude/plugins/cache`). With the repo-as-plugin layout, `${CLAUDE_PLUGIN_ROOT}` is the repo root, so scripts live at `${CLAUDE_PLUGIN_ROOT}/skills/<name>/...`. This variable is substituted inline in skill content, hook commands, and MCP/LSP configs, and is also exported as an environment variable to subprocesses.
 - Use `${CLAUDE_PLUGIN_DATA}` for state that must survive plugin updates.
 - All component directories (`skills/`, `commands/`, `agents/`, `hooks/`) live at the plugin root — never inside `.claude-plugin/`.
 
