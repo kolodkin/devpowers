@@ -1,6 +1,6 @@
 ---
 name: local-skill
-description: Download, update, or dry-run-preview a single skill directory from a GitHub repository in the current project's ./.claude/skills/ folder. Use when the user asks to install, add, fetch, download, update, or preview a local skill from a repo (e.g. "/local-skill anthropics/skills skills/pdf", "update the pdf skill", "dry-run the brainstorming skill from obra/superpowers").
+description: Download, update, or dry-run-preview a single skill directory from a GitHub repository in the current project's ./.claude/skills/ folder. Use when the user asks to install, add, fetch, download, update, or preview a local skill from a repo (e.g. "/local-skill anthropics/skills skills/pdf", "update the pdf skill", "dry-run the action-run skill from kolodkin/devpowers").
 ---
 
 # Local Skill
@@ -27,7 +27,7 @@ Examples:
 ```
 /local-skill anthropics/skills skills/pdf
 /local-skill anthropics/skills skills/docx --dry-run
-/local-skill obra/superpowers skills/brainstorming --dry-run
+/local-skill kolodkin/devpowers skills/action-run --dry-run
 /local-skill update pdf
 /local-skill update pdf --dry-run
 ```
