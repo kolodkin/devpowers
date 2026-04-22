@@ -8,24 +8,9 @@
   },
   "plugins": [
     {
-      "name": "action-run",
-      "source": "./plugins/action-run",
-      "description": "Trigger and monitor any GitHub Actions workflow by name, gather required inputs, and fix failures automatically."
-    },
-    {
-      "name": "action-check",
-      "source": "./plugins/action-check",
-      "description": "Check the latest GitHub Actions workflow run, monitor in-progress runs to completion, and report failures with logs."
-    },
-    {
-      "name": "git-commit",
-      "source": "./plugins/git-commit",
-      "description": "Create a git commit with staged changes, handling pre-commit hooks automatically."
-    },
-    {
-      "name": "local-skill",
-      "source": "./plugins/local-skill",
-      "description": "Download a single skill directory from a GitHub repository into the current project's .claude/skills/."
+      "name": "devpowers",
+      "source": "./plugins/devpowers",
+      "description": "Developer productivity skills: GitHub Actions runner and checker, git commit helper, and local skill installer."
     }
   ]
 }
