@@ -10,7 +10,7 @@
     {
       "name": "devpowers",
       "source": "./",
-      "description": "Developer productivity skills: GitHub Actions runner and checker, git commit helper, and local skill installer."
+      "description": "Developer productivity skills: GitHub Actions runner and checker, git commit helper, local skill installer, and markdown shortener."
     }
   ]
 }
