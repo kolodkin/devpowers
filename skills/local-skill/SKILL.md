@@ -5,7 +5,7 @@ description: Download, update, or dry-run-preview a single skill directory from 
 
 # Local Skill
 
-Install or update a skill from a public GitHub skills repository into the current project's `.claude/skills/<skill-name>/`. The installer queries the GitHub git-trees API for the repo's file list, filters to `<skill-path>/`, and downloads only those blobs via `raw.githubusercontent.com` — the rest of the repo is never transferred. No `git` required, no `.git` left in the destination.
+Install or update a skill from a public GitHub skills repository into the current project's `.claude/skills/<skill-name>/`. The installer fetches the repo's latest tarball from `codeload.github.com`, extracts just `<skill-path>/` into the destination, and discards the rest. No GitHub API calls (so no 60 req/hr rate limit), no `git` required, no `.git` left in the destination.
 
 An install writes a small `.local-skill.stamp` file into the skill directory recording `{repo, path}`. Commit this file alongside the skill so anyone with the repo can later run `update` to pull the latest version.
 
@@ -67,5 +67,4 @@ If there is no stamp file, the skill wasn't installed via `local-skill` — surf
 - Destination folder name is the basename of `<skill-path>` — e.g. `skills/pdf` installs to `.claude/skills/pdf/`.
 - Update always overwrites local edits. Warn the user if `.claude/skills/<name>/` has uncommitted changes before updating.
 - Public GitHub repos only; always tracks the default branch's HEAD (no pinning).
-- Uses the unauthenticated GitHub API (60 req/hr per IP) for the tree lookup; blob downloads via `raw.githubusercontent.com` are not API-rate-limited.
-- Errors out cleanly if the tree is too large (>100k entries, GitHub marks it `truncated`).
+- Downloads via `codeload.github.com` (the same infrastructure that serves GitHub's "Download ZIP" archive links). No GitHub API calls, so no rate limit — but the full repo tarball is fetched each time, so point this at repos where the skill dir is a reasonable fraction of total size.
