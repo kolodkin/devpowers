@@ -5,9 +5,9 @@ description: Download or update a single skill directory from a GitHub repositor
 
 # Local Skill
 
-Install or update a skill from a GitHub skills repository into the current project's `.claude/skills/<skill-name>/`. Only the requested subdirectory is fetched (via `git sparse-checkout`), so this stays light even for large skill repos.
+Install or update a skill from a public GitHub skills repository into the current project's `.claude/skills/<skill-name>/`. The skill is fetched via a plain HTTPS tarball from `codeload.github.com` and only the requested subdirectory is extracted — no `git` required, no `.git` left in the destination.
 
-An install writes a small `.local-skill.stamp` file into the skill directory recording `{repo, path, commit}`. Commit this file alongside the skill so anyone with the repo can later run `update` to pull the latest version.
+An install writes a small `.local-skill.stamp` file into the skill directory recording `{repo, path, installed_at}`. Commit this file alongside the skill so anyone with the repo can later run `update` to pull the latest version.
 
 ## Invocation Format
 
@@ -48,7 +48,7 @@ Examples:
    sed -n '1,20p' .claude/skills/<basename>/SKILL.md
    ```
 
-The script validates inputs, creates `.claude/skills/` if needed, does a shallow blobless sparse clone, refuses to overwrite without `--force`, and writes `.local-skill.stamp` with the installed commit.
+The script validates inputs, creates `.claude/skills/` if needed, downloads the repo tarball into a temp dir, extracts only the requested subdirectory, copies it into place, deletes the temp, and writes `.local-skill.stamp`. It refuses to overwrite without `--force`.
 
 ## Update flow
 
@@ -58,7 +58,7 @@ When the user asks to update an already-installed skill, run:
 bash "${CLAUDE_PLUGIN_ROOT}/skills/local-skill/scripts/update.sh" <skill-name>
 ```
 
-This reads `.claude/skills/<skill-name>/.local-skill.stamp`, re-fetches the latest HEAD from the recorded repo/path, and replaces the skill directory in place. The stamp is then rewritten with the new commit.
+This reads `.claude/skills/<skill-name>/.local-skill.stamp`, re-fetches the latest HEAD from the recorded repo/path, and replaces the skill directory in place. The stamp's `installed_at` is then refreshed.
 
 If there is no stamp file, the skill wasn't installed via `local-skill` — surface that and ask the user for the repo/path to install fresh instead.
 
@@ -67,5 +67,7 @@ If there is no stamp file, the skill wasn't installed via `local-skill` — surf
 - Destination folder name is the basename of `<skill-path>` — e.g. `skills/pdf` installs to `.claude/skills/pdf/`.
 - The `.local-skill.stamp` file is intended to be committed. Updates rely on it; without it, there is no way to know where the skill came from.
 - Update always overwrites local edits to the skill directory. Warn the user if `.claude/skills/<name>/` has uncommitted changes and they've asked for an update.
-- Requires `git` on PATH.
+- Requires `curl` and `tar` on PATH. No `git` dependency.
+- Only public GitHub repositories are supported.
+- Always fetches latest HEAD of the default branch; pinning to a specific commit or branch is not supported.
 - On failure, scripts print a clear error to stderr and exit non-zero — relay the message rather than retrying silently.

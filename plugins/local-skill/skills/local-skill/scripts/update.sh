@@ -30,7 +30,7 @@ fi
 
 repo=""
 path=""
-commit=""
+installed_at=""
 # shellcheck disable=SC1090
 source "$STAMP"
 
@@ -39,8 +39,7 @@ if [[ -z "$repo" || -z "$path" ]]; then
   exit 1
 fi
 
-OLD_COMMIT="${commit:-unknown}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "updating ${NAME} from ${repo} (was ${OLD_COMMIT:0:12})"
+echo "updating ${NAME} from ${repo} (previous install: ${installed_at:-unknown})"
 exec bash "${SCRIPT_DIR}/download.sh" "$repo" "$path" --force
