@@ -1,0 +1,10 @@
+{
+  "name": "devpowers",
+  "description": "Developer productivity skills: GitHub Actions runner and checker, git commit helper, and local skill installer.",
+  "version": "1.0.0",
+  "author": {
+    "name": "kolodkin"
+  },
+  "homepage": "https://github.com/kolodkin/devpowers",
+  "keywords": ["git", "commit", "github", "actions", "workflow", "ci", "skill", "install"]
+}
