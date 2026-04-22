@@ -7,7 +7,7 @@ description: Download, update, or dry-run-preview a single skill directory from 
 
 Install or update a skill from a public GitHub skills repository into the current project's `.claude/skills/<skill-name>/`. The installer queries the GitHub git-trees API for the repo's file list, filters to `<skill-path>/`, and downloads only those blobs via `raw.githubusercontent.com` — the rest of the repo is never transferred. No `git` required, no `.git` left in the destination.
 
-An install writes a small `.local-skill.stamp` file into the skill directory recording `{repo, path, installed_at}`. Commit this file alongside the skill so anyone with the repo can later run `update` to pull the latest version.
+An install writes a small `.local-skill.stamp` file into the skill directory recording `{repo, path}`. Commit this file alongside the skill so anyone with the repo can later run `update` to pull the latest version.
 
 ## Invocation Format
 
