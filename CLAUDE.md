@@ -21,6 +21,8 @@ skills/<skill-name>/
 
 ## References
 
+See [docs/references.md](docs/references.md).
+
 Docs:
 - [Plugin Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
 - [Plugins reference](https://code.claude.com/docs/en/plugins-reference)
