@@ -23,16 +23,15 @@ for arg in "$@"; do
 done
 
 [[ ${#ARGS[@]} -eq 2 ]] || usage
-
 REPO="${ARGS[0]}"
 SKILL_PATH="${ARGS[1]}"
 
 case "$REPO" in
-  https://github.com/*)  REPO_SLUG="${REPO#https://github.com/}" ;;
-  http://github.com/*)   REPO_SLUG="${REPO#http://github.com/}" ;;
-  git@github.com:*)      REPO_SLUG="${REPO#git@github.com:}" ;;
+  https://github.com/*)   REPO_SLUG="${REPO#https://github.com/}" ;;
+  http://github.com/*)    REPO_SLUG="${REPO#http://github.com/}" ;;
+  git@github.com:*)       REPO_SLUG="${REPO#git@github.com:}" ;;
   ssh://git@github.com/*) REPO_SLUG="${REPO#ssh://git@github.com/}" ;;
-  */*)                   REPO_SLUG="$REPO" ;;
+  */*)                    REPO_SLUG="$REPO" ;;
   *) echo "error: <repo> must be owner/repo or a github URL" >&2; exit 2 ;;
 esac
 REPO_SLUG="${REPO_SLUG%.git}"
@@ -47,12 +46,9 @@ esac
 SKILL_PATH="${SKILL_PATH#/}"
 SKILL_PATH="${SKILL_PATH%/}"
 [[ -n "$SKILL_PATH" ]] || { echo "error: <skill-path> cannot be empty" >&2; exit 2; }
+case "$SKILL_PATH" in *..*) echo "error: <skill-path> must not contain '..'" >&2; exit 2 ;; esac
 
-case "$SKILL_PATH" in
-  *..*) echo "error: <skill-path> must not contain '..'" >&2; exit 2 ;;
-esac
-
-for dep in curl tar; do
+for dep in curl python3; do
   command -v "$dep" >/dev/null 2>&1 || { echo "error: ${dep} is required but not found on PATH" >&2; exit 127; }
 done
 
@@ -71,27 +67,51 @@ fi
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-ARCHIVE="${TMP_DIR}/archive.tgz"
-TARBALL_URL="https://codeload.github.com/${REPO_SLUG}/tar.gz/HEAD"
+TREE_URL="https://api.github.com/repos/${REPO_SLUG}/git/trees/HEAD?recursive=1"
+TREE_JSON="${TMP_DIR}/tree.json"
 
-if ! curl -fsSL --retry 2 "$TARBALL_URL" -o "$ARCHIVE"; then
-  echo "error: failed to download ${TARBALL_URL} (is the repo public and the name correct?)" >&2
+if ! curl -fsSL -H "Accept: application/vnd.github+json" --retry 2 "$TREE_URL" -o "$TREE_JSON"; then
+  echo "error: failed to fetch ${TREE_URL}" >&2
+  echo "       (private repo, wrong name, or GitHub API rate limit — unauthenticated limit is 60 req/hr per IP)" >&2
   exit 1
 fi
 
-TOP="$(tar tzf "$ARCHIVE" 2>/dev/null | head -1 | cut -d/ -f1 || true)"
-[[ -n "$TOP" ]] || { echo "error: downloaded archive is empty or malformed" >&2; exit 1; }
+FILES_TSV="${TMP_DIR}/files.tsv"
+python3 - "$TREE_JSON" "$SKILL_PATH" > "$FILES_TSV" <<'PY'
+import json, sys
+tree_path, skill_path = sys.argv[1], sys.argv[2].strip("/")
+with open(tree_path) as f:
+    data = json.load(f)
+if data.get("truncated"):
+    sys.stderr.write("error: repo tree is truncated (too large for the git-trees API)\n")
+    sys.exit(2)
+prefix = skill_path + "/"
+matches = []
+for e in data.get("tree", []):
+    p = e["path"]
+    if e.get("type") == "blob" and p.startswith(prefix):
+        matches.append((e.get("mode", "100644"), p, p[len(prefix):]))
+if not matches:
+    sys.stderr.write(f"error: no files under '{skill_path}' in the repo tree\n")
+    sys.exit(3)
+for mode, full, rel in matches:
+    print(f"{mode}\t{full}\t{rel}")
+PY
 
-if ! tar xzf "$ARCHIVE" -C "$TMP_DIR" "${TOP}/${SKILL_PATH}" 2>/dev/null; then
-  echo "error: path '${SKILL_PATH}' not found in ${REPO_SLUG}" >&2
-  exit 1
-fi
+mkdir -p "$DEST_DIR"
 
-SRC="${TMP_DIR}/${TOP}/${SKILL_PATH}"
-[[ -d "$SRC" ]] || { echo "error: '${SKILL_PATH}' in ${REPO_SLUG} is not a directory" >&2; exit 1; }
-
-mkdir -p "$(dirname "$DEST_DIR")"
-cp -R "$SRC" "$DEST_DIR"
+FILE_COUNT=0
+while IFS=$'\t' read -r mode full rel; do
+  out_file="${DEST_DIR}/${rel}"
+  mkdir -p "$(dirname "$out_file")"
+  raw_url="https://raw.githubusercontent.com/${REPO_SLUG}/HEAD/${full}"
+  if ! curl -fsSL --retry 2 "$raw_url" -o "$out_file"; then
+    echo "error: failed to download ${raw_url}" >&2
+    exit 1
+  fi
+  case "$mode" in 100755|100775) chmod +x "$out_file" ;; esac
+  FILE_COUNT=$((FILE_COUNT + 1))
+done < "$FILES_TSV"
 
 INSTALLED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 cat > "${DEST_DIR}/.local-skill.stamp" <<STAMP
@@ -101,4 +121,4 @@ path='${SKILL_PATH}'
 installed_at='${INSTALLED_AT}'
 STAMP
 
-echo "installed ${SKILL_PATH} from ${REPO_SLUG} -> ${DEST_DIR}"
+echo "installed ${FILE_COUNT} file(s) from ${REPO_SLUG}/${SKILL_PATH} -> ${DEST_DIR}"

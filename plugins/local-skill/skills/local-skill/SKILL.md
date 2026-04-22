@@ -5,7 +5,7 @@ description: Download or update a single skill directory from a GitHub repositor
 
 # Local Skill
 
-Install or update a skill from a public GitHub skills repository into the current project's `.claude/skills/<skill-name>/`. The skill is fetched via a plain HTTPS tarball from `codeload.github.com` and only the requested subdirectory is extracted — no `git` required, no `.git` left in the destination.
+Install or update a skill from a public GitHub skills repository into the current project's `.claude/skills/<skill-name>/`. The installer queries the GitHub git-trees API for the repo's file list, filters to `<skill-path>/`, and downloads only those blobs via `raw.githubusercontent.com` — the rest of the repo is never transferred. No `git` required, no `.git` left in the destination.
 
 An install writes a small `.local-skill.stamp` file into the skill directory recording `{repo, path, installed_at}`. Commit this file alongside the skill so anyone with the repo can later run `update` to pull the latest version.
 
@@ -48,7 +48,7 @@ Examples:
    sed -n '1,20p' .claude/skills/<basename>/SKILL.md
    ```
 
-The script validates inputs, creates `.claude/skills/` if needed, downloads the repo tarball into a temp dir, extracts only the requested subdirectory, copies it into place, deletes the temp, and writes `.local-skill.stamp`. It refuses to overwrite without `--force`.
+The script validates inputs, creates `.claude/skills/` if needed, fetches the repo tree JSON, downloads each blob under `<skill-path>/` into the destination (preserving executable mode), and writes `.local-skill.stamp`. It refuses to overwrite without `--force`.
 
 ## Update flow
 
@@ -67,7 +67,9 @@ If there is no stamp file, the skill wasn't installed via `local-skill` — surf
 - Destination folder name is the basename of `<skill-path>` — e.g. `skills/pdf` installs to `.claude/skills/pdf/`.
 - The `.local-skill.stamp` file is intended to be committed. Updates rely on it; without it, there is no way to know where the skill came from.
 - Update always overwrites local edits to the skill directory. Warn the user if `.claude/skills/<name>/` has uncommitted changes and they've asked for an update.
-- Requires `curl` and `tar` on PATH. No `git` dependency.
+- Requires `curl` and `python3` on PATH. No `git` or `tar` dependency.
 - Only public GitHub repositories are supported.
 - Always fetches latest HEAD of the default branch; pinning to a specific commit or branch is not supported.
+- Uses the unauthenticated GitHub API (60 requests/hour per IP). Installing one skill = one API call + N raw file downloads (raw downloads are not API-rate-limited).
+- Git-trees API returns a truncated response for very large repos (>100k entries); in that case the installer errors out with a clear message.
 - On failure, scripts print a clear error to stderr and exit non-zero — relay the message rather than retrying silently.
