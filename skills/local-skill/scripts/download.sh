@@ -8,7 +8,7 @@ Usage: download.sh <repo> <skill-path> [--force] [--dry-run]
   <repo>        owner/repo or https://github.com/owner/repo(.git)
   <skill-path>  path to the skill directory within the repo
   --force       overwrite an existing destination directory
-  --dry-run     fetch the tree and print what would be installed; do not
+  --dry-run     fetch the tarball and print what would be installed; do not
                 create or modify any files on disk
 USAGE
   exit 2
@@ -54,7 +54,7 @@ if [[ ! "$SKILL_PATH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
   exit 2
 fi
 
-for dep in curl python3; do
+for dep in curl tar; do
   command -v "$dep" >/dev/null 2>&1 || { echo "error: ${dep} is required but not found on PATH" >&2; exit 127; }
 done
 
@@ -80,74 +80,52 @@ fi
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-TREE_URL="https://api.github.com/repos/${REPO_SLUG}/git/trees/HEAD?recursive=1"
-TREE_JSON="${TMP_DIR}/tree.json"
+TAR_URL="https://codeload.github.com/${REPO_SLUG}/tar.gz/HEAD"
+TAR_FILE="${TMP_DIR}/repo.tar.gz"
 
-if ! curl -fsSL -H "Accept: application/vnd.github+json" --retry 2 "$TREE_URL" -o "$TREE_JSON"; then
-  echo "error: failed to fetch ${TREE_URL}" >&2
-  echo "       (private repo, wrong name, or GitHub API rate limit — unauthenticated limit is 60 req/hr per IP)" >&2
+if ! curl -fsSL --retry 2 "$TAR_URL" -o "$TAR_FILE"; then
+  echo "error: failed to fetch ${TAR_URL}" >&2
+  echo "       (private repo, wrong name, or codeload.github.com unreachable)" >&2
   exit 1
 fi
 
-FILES_TSV="${TMP_DIR}/files.tsv"
-python3 - "$TREE_JSON" "$SKILL_PATH" > "$FILES_TSV" <<'PY'
-import json, sys
-tree_path, skill_path = sys.argv[1], sys.argv[2].strip("/")
-with open(tree_path) as f:
-    data = json.load(f)
-if data.get("truncated"):
-    sys.stderr.write("error: repo tree is truncated (too large for the git-trees API)\n")
-    sys.exit(2)
-prefix = skill_path + "/"
-matches = [(e.get("mode", "100644"), e["path"], e["path"][len(prefix):])
-           for e in data.get("tree", [])
-           if e.get("type") == "blob" and e["path"].startswith(prefix)]
-if not matches:
-    sys.stderr.write(f"error: no files under '{skill_path}' in the repo tree\n")
-    sys.exit(3)
-for mode, full, rel in matches:
-    print(f"{mode}\t{full}\t{rel}")
-PY
+FULL_LIST="${TMP_DIR}/all.txt"
+tar -tzf "$TAR_FILE" > "$FULL_LIST"
+PREFIX="$(awk -F/ 'NR==1{print $1; exit}' "$FULL_LIST")"
+[[ -n "$PREFIX" ]] || { echo "error: downloaded tarball is empty" >&2; exit 1; }
 
-FILE_COUNT=$(wc -l < "$FILES_TSV" | tr -d ' ')
+MATCH_PREFIX="${PREFIX}/${SKILL_PATH}/"
+MATCH_LIST="${TMP_DIR}/files.txt"
+awk -v p="$MATCH_PREFIX" 'index($0, p) == 1 && substr($0, length($0)) != "/"' \
+  "$FULL_LIST" > "$MATCH_LIST"
+
+FILE_COUNT=$(wc -l < "$MATCH_LIST" | tr -d ' ')
+if [[ "$FILE_COUNT" -eq 0 ]]; then
+  echo "error: no files under '${SKILL_PATH}' in ${REPO_SLUG}" >&2
+  exit 3
+fi
 
 if [[ $DRY_RUN -eq 1 ]]; then
   echo "dry run: would install ${FILE_COUNT} file(s) from ${REPO_SLUG}/${SKILL_PATH} -> ${DEST_DIR}"
   [[ -n "$DEST_STATUS" ]] && echo "note: destination ${DEST_STATUS}"
-  while IFS=$'\t' read -r mode _ rel; do
-    case "$mode" in
-      100755|100775) echo "  ${rel} (executable)" ;;
-      *)             echo "  ${rel}" ;;
-    esac
-  done < "$FILES_TSV"
+  while IFS= read -r full; do
+    echo "  ${full#$MATCH_PREFIX}"
+  done < "$MATCH_LIST"
   exit 0
 fi
 
-mkdir -p "$DEST_DIR"
-CONFIG="${TMP_DIR}/curl-config"
-EXEC_LIST="${TMP_DIR}/exec-list"
-: > "$CONFIG"
-: > "$EXEC_LIST"
-
-while IFS=$'\t' read -r mode full rel; do
-  out_file="${DEST_DIR}/${rel}"
-  mkdir -p "$(dirname "$out_file")"
-  printf 'url = "https://raw.githubusercontent.com/%s/HEAD/%s"\noutput = "%s"\n' \
-    "$REPO_SLUG" "$full" "$out_file" >> "$CONFIG"
-  case "$mode" in 100755|100775) printf '%s\n' "$out_file" >> "$EXEC_LIST" ;; esac
-done < "$FILES_TSV"
-
-PARALLEL_FLAGS=()
-if curl --help all 2>/dev/null | grep -q -- '--parallel\b'; then
-  PARALLEL_FLAGS=(--parallel --parallel-max 8)
-fi
-
-if ! curl -fsSL --retry 2 "${PARALLEL_FLAGS[@]}" -K "$CONFIG"; then
-  echo "error: failed to download one or more files from ${REPO_SLUG}" >&2
+EXTRACT_DIR="${TMP_DIR}/extract"
+mkdir -p "$EXTRACT_DIR"
+if ! tar -xzf "$TAR_FILE" -C "$EXTRACT_DIR" --strip-components=1 "${MATCH_PREFIX%/}"; then
+  echo "error: failed to extract ${MATCH_PREFIX} from tarball" >&2
   exit 1
 fi
 
-while IFS= read -r f; do [[ -n "$f" ]] && chmod +x "$f"; done < "$EXEC_LIST"
+SRC="${EXTRACT_DIR}/${SKILL_PATH}"
+[[ -d "$SRC" ]] || { echo "error: expected directory ${SRC} not found after extract" >&2; exit 1; }
+
+mkdir -p "$(dirname "$DEST_DIR")"
+mv "$SRC" "$DEST_DIR"
 
 REPO_Q="${REPO_SLUG//\'/\'\\\'\'}"
 PATH_Q="${SKILL_PATH//\'/\'\\\'\'}"
