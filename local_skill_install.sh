@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Bootstrap the local-skill skill into ./.claude/skills/local-skill/.
 # One-liner:
-#   curl -fsSL https://raw.githubusercontent.com/kolodkin/devpowers/HEAD/skill_local_install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/kolodkin/devpowers/HEAD/local_skill_install.sh | bash
 # Extra args (e.g. --force, --dry-run) are forwarded to download.sh.
 set -euo pipefail
 

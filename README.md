@@ -14,7 +14,7 @@ A Claude Code plugin bundling developer productivity skills.
 If you want just the `local-skill` skill (no plugin), drop it into the current project's `.claude/skills/` with:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/kolodkin/devpowers/HEAD/skill_local_install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kolodkin/devpowers/HEAD/local_skill_install.sh | bash
 ```
 
 Pin a different branch/tag/commit by setting `LOCAL_SKILL_REF`. Extra args (e.g. `--force`, `--dry-run`) are forwarded to the installer.
