@@ -32,14 +32,14 @@ Match the user's description to a workflow file (fuzzy match by name/content). W
 ## Step 2 — Run the Script
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/skills/action-check/check.sh <workflow-file>
+./check.sh <workflow-file>
 ```
 
 Examples:
 ```bash
-${CLAUDE_PLUGIN_ROOT}/skills/action-check/check.sh publish.yaml
-${CLAUDE_PLUGIN_ROOT}/skills/action-check/check.sh test.yaml
-${CLAUDE_PLUGIN_ROOT}/skills/action-check/check.sh generate-migration.yaml
+./check.sh publish.yaml
+./check.sh test.yaml
+./check.sh generate-migration.yaml
 ```
 
 The script will:
