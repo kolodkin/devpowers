@@ -38,7 +38,7 @@ Examples:
 2. Run the downloader from the project root so `.claude/skills/` lands in the user's project:
 
    ```bash
-   bash "${CLAUDE_PLUGIN_ROOT}/skills/local-skill/scripts/download.sh" <repo> <skill-path> [--force] [--dry-run]
+   bash scripts/download.sh <repo> <skill-path> [--force] [--dry-run]
    ```
 
    Pass `--force` only if the user explicitly asked to overwrite. Pass `--dry-run` if the user asked to preview / evaluate / not actually install — the script will fetch the tree and print the file list without writing anything.
@@ -55,7 +55,7 @@ Examples:
 When the user asks to update an already-installed skill, run:
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/skills/local-skill/scripts/update.sh" <skill-name> [--dry-run]
+bash scripts/update.sh <skill-name> [--dry-run]
 ```
 
 This reads `.claude/skills/<skill-name>/.local-skill.stamp`, re-fetches the latest HEAD from the recorded repo/path, and replaces the skill directory in place. Pass `--dry-run` to preview what would change without modifying the installed skill — the flag is forwarded to `download.sh`.

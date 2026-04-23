@@ -15,7 +15,7 @@ skills/<skill-name>/
 
 ## Conventions
 
-- Reference bundled scripts from SKILL.md using `${CLAUDE_PLUGIN_ROOT}/...` so paths resolve correctly inside the plugin cache (`~/.claude/plugins/cache`). With the repo-as-plugin layout, `${CLAUDE_PLUGIN_ROOT}` is the repo root, so scripts live at `${CLAUDE_PLUGIN_ROOT}/skills/<name>/...`. This variable is substituted inline in skill content, hook commands, and MCP/LSP configs, and is also exported as an environment variable to subprocesses.
+- Reference bundled scripts from SKILL.md using plain relative paths (e.g. `./check.sh`, `scripts/download.sh`). Claude resolves them against the skill's install directory, so the same SKILL.md works for both plugin installs (under `~/.claude/plugins/cache/.../skills/<name>/`) and project-level installs (under `<project>/.claude/skills/<name>/`). Avoid `${CLAUDE_PLUGIN_ROOT}` inside skill bodies — it's empty when the skill is installed project-level, and `${CLAUDE_PROJECT_DIR}` isn't reliably set in Bash tool invocations either ([anthropics/claude-code#6023](https://github.com/anthropics/claude-code/issues/6023)). Reserve `${CLAUDE_PLUGIN_ROOT}` for `hooks/*.json` and MCP/LSP configs, where the harness guarantees it's set.
 - Use `${CLAUDE_PLUGIN_DATA}` for state that must survive plugin updates.
 - All component directories (`skills/`, `commands/`, `agents/`, `hooks/`) live at the plugin root — never inside `.claude-plugin/`.
 
