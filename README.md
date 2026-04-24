@@ -18,10 +18,6 @@ A Claude Code plugin bundling developer productivity skills.
 - **local-skill** — Download a single skill directory from a GitHub repository into the current project's `.claude/skills/`.
 
 
-## References
-
-See [docs/references.md](docs/references.md).
-
 ## Bootstrap `local-skill`
 
 For environments without plugin support (e.g. claude.ai/code), install just the `local-skill` skill into the current project's `.claude/skills/`:
