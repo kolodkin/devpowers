@@ -28,3 +28,5 @@ For environments without plugin support (e.g. claude.ai/code), install just the 
 ```
 curl -fsSL https://raw.githubusercontent.com/kolodkin/devpowers/HEAD/local_skill_install.sh | bash
 ```
+
+Once installed, use `local-skill` to pull additional skills into the project on demand.
