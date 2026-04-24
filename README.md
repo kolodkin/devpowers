@@ -9,16 +9,6 @@ A Claude Code plugin bundling developer productivity skills.
 /plugin install devpowers@devpowers
 ```
 
-### Bootstrap `local-skill` standalone
-
-If you want just the `local-skill` skill (no plugin), drop it into the current project's `.claude/skills/` with:
-
-```
-curl -fsSL https://raw.githubusercontent.com/kolodkin/devpowers/HEAD/local_skill_install.sh | bash
-```
-
-The bootstrap passes `--force` by default, so re-running it refreshes an existing install. Pin a different branch/tag/commit by setting `LOCAL_SKILL_REF`. Extra args (e.g. `--dry-run`) are forwarded to the installer.
-
 ## Skills
 
 - **action-run** — Trigger and monitor any GitHub Actions `workflow_dispatch` workflow by name, gather required inputs, and fix failures automatically.
@@ -30,3 +20,13 @@ The bootstrap passes `--force` by default, so re-running it refreshes an existin
 ## References
 
 See [docs/references.md](docs/references.md).
+
+## Bootstrap `local-skill`
+
+For environments without plugin support (e.g. claude.ai/code), install just the `local-skill` skill into the current project's `.claude/skills/`:
+
+```
+curl -fsSL https://raw.githubusercontent.com/kolodkin/devpowers/HEAD/local_skill_install.sh | bash
+```
+
+Once installed, use `local-skill` to pull additional skills into the project on demand.
