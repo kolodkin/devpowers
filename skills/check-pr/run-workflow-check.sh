@@ -88,11 +88,12 @@ detect_repo() {
     fi
 
     # Extract owner/repo from various remote URL formats
-    # Handle: http://*/git/owner/repo, https://github.com/owner/repo, git@github.com:owner/repo
+    # Handle: https://github.com/owner/repo, git@github.com:owner/repo,
+    #         and proxied formats like http(s)://host[:port]/git/owner/repo
     if [[ "$REMOTE_URL" =~ github\.com[:/]([^/]+)/([^/.]+) ]]; then
         REPO="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
     elif [[ "$REMOTE_URL" =~ /git/([^/]+)/([^/.]+) ]]; then
-        # Handle local proxy format: http://local_proxy@127.0.0.1:*/git/owner/repo
+        # Fallback for proxied git URLs that expose /git/<owner>/<repo>
         REPO="${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
     else
         echo -e "${RED}❌ Error: Could not parse repository from remote URL: $REMOTE_URL${NC}"
