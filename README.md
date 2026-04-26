@@ -24,11 +24,10 @@ A Claude Code plugin bundling developer productivity skills.
   - Env: `GH_TOKEN`
   - Token: classic PAT `repo`, fine-grained `Pull requests: read/write`, `Actions: read`
 - **shortify** — Review and shorten markdown docs in subdirectories — cut wordiness, redundancy, and code duplication.
-  - CLI: none · Env: none · Token: none
 - **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
-  - CLI: `git` · Env: none · Token: none
-- **local-skill** — Download a single skill directory from a GitHub repository into the current project's `.claude/skills/`.
-  - CLI: `curl`, `tar` · Env: none · Token: none (public repos only)
+  - CLI: `git`
+- **local-skill** — Download a single skill directory from a GitHub repository into the current project's `.claude/skills/` (public repos only).
+  - CLI: `curl`, `tar`
 
 
 ## Bootstrap `local-skill`
