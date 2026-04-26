@@ -11,12 +11,24 @@ A Claude Code plugin bundling developer productivity skills.
 
 ## Skills
 
-- **action-run** — Trigger and monitor any GitHub Actions `workflow_dispatch` workflow by name, gather required inputs, and fix failures automatically. Uses `gh`, `git`; `GH_TOKEN`; needs repo write/admin (classic PAT: `workflow`; fine-grained: `Actions: write`).
-- **action-check** — Check the latest GitHub Actions workflow run, monitor in-progress runs, and report failures with logs. Uses `gh`, `git`; `GH_TOKEN`; needs repo read (classic PAT: `repo` for private; fine-grained: `Actions: read`).
-- **check-pr** — After a push, poll PR check status until complete, surface unresolved review comments, and report failure logs. Uses `gh`, `git`; `GH_TOKEN`; needs classic PAT: `repo` or fine-grained: `Pull requests: read/write`, `Actions: read`.
-- **shortify** — Review and shorten markdown docs in subdirectories — cut wordiness, redundancy, and code duplication. No CLI / env / token.
-- **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically. Uses `git`; no env / token.
-- **local-skill** — Download a single skill directory from a GitHub repository into the current project's `.claude/skills/`. Uses `curl`, `tar`; no env / token (public repos only).
+- **action-run** — Trigger and monitor any GitHub Actions `workflow_dispatch` workflow by name, gather required inputs, and fix failures automatically.
+  - CLI: `gh`, `git`
+  - Env: `GH_TOKEN`
+  - Token: repo write/admin — classic PAT `workflow`, fine-grained `Actions: write`
+- **action-check** — Check the latest GitHub Actions workflow run, monitor in-progress runs, and report failures with logs.
+  - CLI: `gh`, `git`
+  - Env: `GH_TOKEN`
+  - Token: repo read — classic PAT `repo` (private repos), fine-grained `Actions: read`
+- **check-pr** — After a push, poll PR check status until complete, surface unresolved review comments, and report failure logs.
+  - CLI: `gh`, `git`
+  - Env: `GH_TOKEN`
+  - Token: classic PAT `repo`, fine-grained `Pull requests: read/write`, `Actions: read`
+- **shortify** — Review and shorten markdown docs in subdirectories — cut wordiness, redundancy, and code duplication.
+  - CLI: none · Env: none · Token: none
+- **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
+  - CLI: `git` · Env: none · Token: none
+- **local-skill** — Download a single skill directory from a GitHub repository into the current project's `.claude/skills/`.
+  - CLI: `curl`, `tar` · Env: none · Token: none (public repos only)
 
 
 ## Bootstrap `local-skill`
