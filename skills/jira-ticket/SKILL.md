@@ -16,7 +16,50 @@ Two modes, one content engine. The presence of a Jira issue key in the arguments
 
 ## Prerequisites
 
-Resolve required values in three steps. Credentials must be set up by the user; project and board are auto-discovered from Jira and offered for one-time persistence.
+Resolve required values in four steps. The MCP server is auto-installed on first use; credentials must be set up by the user; project and board are auto-discovered from Jira and offered for one-time persistence.
+
+### Step 0 — Ensure the mcp-atlassian MCP server is available
+
+This skill drives Jira through the `mcp__mcp-atlassian__*` tools. Before anything else, check whether those tools are present in the current session.
+
+- **If `mcp__mcp-atlassian__jira_create_issue` is visible in your tool list**, the server is already configured. Skip to Step 1.
+- **If it's missing**, offer to register the server in the project's `.mcp.json`:
+
+  1. Show the user exactly what would be added (so they can review before any file is written):
+     ```json
+     {
+       "mcpServers": {
+         "mcp-atlassian": {
+           "command": "uvx",
+           "args": ["mcp-atlassian"],
+           "env": {
+             "JIRA_URL": "${JIRA_BASE_URL}",
+             "JIRA_USERNAME": "${JIRA_USERNAME}",
+             "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
+           }
+         }
+       }
+     }
+     ```
+     Note: Claude Code expands `${VAR}` in `.mcp.json` env values from the parent shell. mcp-atlassian itself reads `JIRA_URL` (not `JIRA_BASE_URL`), so the mapping above lets the skill keep its existing `JIRA_BASE_URL` env var. See https://github.com/sooperset/mcp-atlassian for Confluence support and Docker / pipx alternatives if `uvx` isn't available.
+
+  2. Ask: "Add this to `./.mcp.json`? (yes/no — pick `no` if you'd rather install it user-level via `claude mcp add`.)"
+
+  3. If **yes**:
+     - Read `./.mcp.json` if it exists.
+     - If it doesn't exist, write the snippet above as-is.
+     - If it exists, parse it, merge the `mcp-atlassian` entry into the existing `mcpServers` object **without clobbering other servers or other top-level keys**, and write the result back. Preserve formatting where reasonable (2-space indent, trailing newline).
+     - If `mcpServers["mcp-atlassian"]` already exists with a different config, ask before overwriting.
+
+  4. Verify `uvx` is installed:
+     ```bash
+     command -v uvx >/dev/null && echo "uvx OK" || echo "uvx MISSING"
+     ```
+     If missing, tell the user: "Install `uv` first: `curl -LsSf https://astral.sh/uv/install.sh | sh` (or use Docker / pipx — see the mcp-atlassian README)."
+
+  5. Tell the user: "Added `mcp-atlassian` to `./.mcp.json`. Restart Claude Code and approve the new MCP server when prompted, then re-run `/jira-ticket`." Stop the run — the tools won't be available until restart.
+
+  6. If the user picks **no**, stop and let them install it however they prefer (e.g. `claude mcp add` for a user-scoped install). Do not proceed without the tools.
 
 ### Step 1 — Validate credentials
 
