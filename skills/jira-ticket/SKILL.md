@@ -31,19 +31,14 @@ This skill drives Jira through the `mcp__mcp-atlassian__*` tools. Before anythin
        "mcpServers": {
          "mcp-atlassian": {
            "command": "uvx",
-           "args": ["mcp-atlassian"],
-           "env": {
-             "JIRA_URL": "${JIRA_BASE_URL}",
-             "JIRA_USERNAME": "${JIRA_USERNAME}",
-             "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
-           }
+           "args": ["mcp-atlassian"]
          }
        }
      }
      ```
-     Note: Claude Code expands `${VAR}` in `.mcp.json` env values from the parent shell. mcp-atlassian itself reads `JIRA_URL` (not `JIRA_BASE_URL`), so the mapping above lets the skill keep its existing `JIRA_BASE_URL` env var. See https://github.com/sooperset/mcp-atlassian for Confluence support and Docker / pipx alternatives if `uvx` isn't available.
+     The MCP server inherits `JIRA_URL`, `JIRA_USERNAME`, and `JIRA_API_TOKEN` from the shell that launched Claude Code — no `env` block is needed in `.mcp.json` (and `${VAR}` expansion in MCP env values is unreliable across versions, so don't depend on it). See https://github.com/sooperset/mcp-atlassian for Confluence support and Docker / pipx alternatives if `uvx` isn't available.
 
-  2. Ask: "Add this to `./.mcp.json`? (yes/no — pick `no` if you'd rather install it user-level via `claude mcp add`.)"
+  2. Ask: "Add this to `./.mcp.json`? (yes/no)"
 
   3. If **yes**:
      - Read `./.mcp.json` if it exists.
@@ -59,7 +54,7 @@ This skill drives Jira through the `mcp__mcp-atlassian__*` tools. Before anythin
 
   5. Tell the user: "Added `mcp-atlassian` to `./.mcp.json`. Restart Claude Code and approve the new MCP server when prompted, then re-run `/jira-ticket`." Stop the run — the tools won't be available until restart.
 
-  6. If the user picks **no**, stop and let them install it however they prefer (e.g. `claude mcp add` for a user-scoped install). Do not proceed without the tools.
+  6. If the user picks **no**, stop. Do not proceed without the tools.
 
 ### Step 1 — Validate credentials
 
@@ -67,14 +62,14 @@ Run this exact command:
 ```bash
 echo "JIRA_USERNAME=${JIRA_USERNAME:-NOT_SET}" && \
 echo "JIRA_API_TOKEN=${JIRA_API_TOKEN:+SET}" && \
-echo "JIRA_BASE_URL=${JIRA_BASE_URL:-NOT_SET}"
+echo "JIRA_URL=${JIRA_URL:-NOT_SET}"
 ```
 
 If any are missing, instruct the user and stop. Do not proceed.
 
 - `JIRA_USERNAME` is `NOT_SET` → "Set your Jira username to your account email, e.g. `export JIRA_USERNAME=you@example.com`"
 - `JIRA_API_TOKEN` is empty → "Create an API token at https://id.atlassian.com/manage-profile/security/api-tokens and set it: `export JIRA_API_TOKEN=<your-token>`"
-- `JIRA_BASE_URL` is `NOT_SET` → "Set your Jira workspace URL, e.g. `export JIRA_BASE_URL=https://yourworkspace.atlassian.net`"
+- `JIRA_URL` is `NOT_SET` → "Set your Jira workspace URL, e.g. `export JIRA_URL=https://yourworkspace.atlassian.net`"
 
 Encourage the user to add these to their `~/.zshrc` or `~/.bashrc`.
 
@@ -314,7 +309,7 @@ If no matching sprint is found, inform the user and leave in backlog.
 ### 5. Confirm
 
 Always present the issue link to the user:
-- Issue key with link (e.g., `${JIRA_BASE_URL}/browse/<ISSUE_KEY>`)
+- Issue key with link (e.g., `${JIRA_URL}/browse/<ISSUE_KEY>`)
 - Issue type, sprint placement, summary
 - Epic (if linked)
 
@@ -337,7 +332,7 @@ Use `mcp__mcp-atlassian__jira_add_comment` with:
 ### 3. Confirm
 
 Always present the issue link to the user:
-- Issue link (e.g., `${JIRA_BASE_URL}/browse/<ISSUE_KEY>`)
+- Issue link (e.g., `${JIRA_URL}/browse/<ISSUE_KEY>`)
 - Brief summary of what was posted
 
 ---
@@ -366,5 +361,5 @@ Use `mcp__mcp-atlassian__jira_update_issue` with:
 ### 4. Confirm
 
 Always present the issue link to the user:
-- Issue link (e.g., `${JIRA_BASE_URL}/browse/<ISSUE_KEY>`)
+- Issue link (e.g., `${JIRA_URL}/browse/<ISSUE_KEY>`)
 - Brief summary of what was updated
