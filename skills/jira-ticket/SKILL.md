@@ -36,7 +36,7 @@ This skill drives Jira through the `mcp__mcp-atlassian__*` tools. Before anythin
        }
      }
      ```
-     The MCP server inherits `JIRA_URL`, `JIRA_USERNAME`, and `JIRA_API_TOKEN` from the shell that launched Claude Code — no `env` block is needed in `.mcp.json` (and `${VAR}` expansion in MCP env values is unreliable across versions, so don't depend on it). See https://github.com/sooperset/mcp-atlassian for Confluence support and Docker / pipx alternatives if `uvx` isn't available.
+     The MCP server inherits Jira credentials (`JIRA_URL` plus either `JIRA_USERNAME` + `JIRA_API_TOKEN` for Cloud or `JIRA_PERSONAL_TOKEN` for Server / Data Center) from the shell that launched Claude Code — no `env` block is needed in `.mcp.json` (and `${VAR}` expansion in MCP env values is unreliable across versions, so don't depend on it). See https://github.com/sooperset/mcp-atlassian for Confluence support and Docker / pipx alternatives if `uvx` isn't available.
 
   2. Ask: "Add this to `./.mcp.json`? (yes/no)"
 
@@ -60,18 +60,22 @@ This skill drives Jira through the `mcp__mcp-atlassian__*` tools. Before anythin
 
 Run this exact command:
 ```bash
+echo "JIRA_URL=${JIRA_URL:-NOT_SET}" && \
 echo "JIRA_USERNAME=${JIRA_USERNAME:-NOT_SET}" && \
 echo "JIRA_API_TOKEN=${JIRA_API_TOKEN:+SET}" && \
-echo "JIRA_URL=${JIRA_URL:-NOT_SET}"
+echo "JIRA_PERSONAL_TOKEN=${JIRA_PERSONAL_TOKEN:+SET}"
 ```
 
-If any are missing, instruct the user and stop. Do not proceed.
+`JIRA_URL` is always required. For auth, **either** the Cloud combo (`JIRA_USERNAME` + `JIRA_API_TOKEN`) **or** the Server / Data Center PAT (`JIRA_PERSONAL_TOKEN`) must be set. If neither is complete, instruct the user and stop. Do not proceed.
 
-- `JIRA_USERNAME` is `NOT_SET` → "Set your Jira username to your account email, e.g. `export JIRA_USERNAME=you@example.com`"
-- `JIRA_API_TOKEN` is empty → "Create an API token at https://id.atlassian.com/manage-profile/security/api-tokens and set it: `export JIRA_API_TOKEN=<your-token>`"
 - `JIRA_URL` is `NOT_SET` → "Set your Jira workspace URL, e.g. `export JIRA_URL=https://yourworkspace.atlassian.net`"
+- **Cloud** (Atlassian-hosted, `*.atlassian.net`): set both
+  - `JIRA_USERNAME` → your account email, e.g. `export JIRA_USERNAME=you@example.com`
+  - `JIRA_API_TOKEN` → create one at https://id.atlassian.com/manage-profile/security/api-tokens, then `export JIRA_API_TOKEN=<your-token>`
+- **Server / Data Center** (self-hosted): set just
+  - `JIRA_PERSONAL_TOKEN` → create a Personal Access Token in your Jira profile, then `export JIRA_PERSONAL_TOKEN=<your-pat>`. `JIRA_USERNAME` is optional here, but if you set it the skill will use it for the assignee / reporter on created tickets.
 
-Encourage the user to add these to their `~/.zshrc` or `~/.bashrc`.
+Encourage the user to add the relevant exports to their `~/.zshrc` or `~/.bashrc`.
 
 ### Step 2 — Resolve project (auto-discover if needed)
 
@@ -283,9 +287,9 @@ Use `mcp__mcp-atlassian__jira_create_issue` with:
 - `project_key`: value of `$JIRA_PROJECT_KEY`
 - `summary`: The confirmed title
 - `issue_type`: The determined type
-- `assignee`: Value of `$JIRA_USERNAME` environment variable
+- `assignee`: Value of `$JIRA_USERNAME` if set; otherwise omit and let Jira default.
 - `description`: The built content
-- `additional_fields`: Include `{"reporter": {"id": "<account_id>"}}` — look up the account ID using `mcp__mcp-atlassian__jira_get_user_profile` with the `$JIRA_USERNAME` value first. Also include `{"priority": {"name": "<Priority>"}}` only if the user explicitly provided a priority. If any `label <n>` arguments were passed, include `{"labels": [<name>, ...]}` in additional_fields with all collected label names.
+- `additional_fields`: If `$JIRA_USERNAME` is set, include `{"reporter": {"id": "<account_id>"}}` — look up the account ID using `mcp__mcp-atlassian__jira_get_user_profile` with the `$JIRA_USERNAME` value first; if unset (e.g. PAT-only Server/DC users), omit the reporter override. Also include `{"priority": {"name": "<Priority>"}}` only if the user explicitly provided a priority. If any `label <n>` arguments were passed, include `{"labels": [<name>, ...]}` in additional_fields with all collected label names.
 
 ### 3. Epic Linking
 
