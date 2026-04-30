@@ -1,16 +1,16 @@
 ---
-name: remote-docker-debug
+name: ssh-docker-debug
 description: Debug Docker containers running on a remote VM via SSH. Use when the user wants to discover running containers, tail remote docker logs, or troubleshoot deployed services on a remote host. Triggers on mentions of "remote docker logs", "prod debug", "tail container logs", "what's running on <host>", or debugging containers on a deployed VM.
 ---
 
-# Remote Docker Debugging
+# SSH Docker Debugging
 
 Discover and tail logs for Docker containers on a remote VM over SSH.
 
 ## Arguments
 
 ```
-/remote-docker-debug <ssh-host> [container-name ...]
+/ssh-docker-debug <ssh-host> [container-name ...]
 ```
 
 - **ssh-host** (required) — SSH host name as configured in `~/.ssh/config`
