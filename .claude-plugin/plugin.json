@@ -1,6 +1,6 @@
 {
   "name": "devpowers",
-  "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, git commit helper, local skill installer, markdown shortener, and remote Docker debugger.",
+  "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, git commit helper, local skill installer, markdown shortener, and local/remote Docker debuggers.",
   "version": "1.0.0",
   "author": {
     "name": "kolodkin"
