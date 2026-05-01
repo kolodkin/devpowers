@@ -28,6 +28,10 @@ A Claude Code plugin bundling developer productivity skills.
   - CLI: `git`
 - **local-skill** — Download a single skill directory from a GitHub repository into the current project's `.claude/skills/` (public repos only).
   - CLI: `curl`, `tar`
+- **ssh-docker-debug** — Discover and tail logs for Docker containers running on a remote VM over SSH (read-only).
+  - CLI: `ssh`, `docker` (on the remote host), `curl`
+- **local-docker-debug** — Discover and tail logs for Docker containers running on the local Docker daemon (read-only).
+  - CLI: `docker`, `curl`
 
 
 ## Bootstrap `local-skill`
