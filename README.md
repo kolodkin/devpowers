@@ -28,6 +28,8 @@ A Claude Code plugin bundling developer productivity skills.
   - CLI: `git`
 - **local-skill** — Download a single skill directory from a GitHub repository into the current project's `.claude/skills/` (public repos only).
   - CLI: `curl`, `tar`
+- **setup-mcp** — Register a known MCP server (from the curated `mcps.json` manifest) into `./.mcp.json` or the user's Claude Code config. Bounded to vetted entries; refuses unknown names. Use to install `github`, `mcp-atlassian`, or any future entry added to the manifest.
+  - CLI: `claude` (for `claude mcp add`), plus whatever the chosen MCP entry requires (`docker`, `uvx`, ...)
 - **ssh-docker-debug** — Discover and tail logs for Docker containers running on a remote VM over SSH (read-only).
   - CLI: `ssh`, `docker` (on the remote host), `curl`
 - **local-docker-debug** — Discover and tail logs for Docker containers running on the local Docker daemon (read-only).
