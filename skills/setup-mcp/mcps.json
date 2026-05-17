@@ -1,22 +1,17 @@
 {
   "github": {
-    "description": "GitHub MCP server — PRs, issues, files, checks, code search.",
+    "description": "GitHub MCP server — PRs, issues, files, checks, code search. Uses GitHub's hosted HTTP transport (no local install).",
     "source": "https://github.com/github/github-mcp-server",
     "config_template": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
-      ]
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
     },
-    "required_cli": ["docker"],
     "required_env": ["GITHUB_PERSONAL_ACCESS_TOKEN"],
     "detection_tool": "mcp__github__list_pull_requests",
-    "notes": "Token needs classic PAT 'repo' scope (private repos) or the fine-grained equivalents for the resources you want (Pull requests: read/write, Issues: read/write, Contents: read, Actions: read). Create one at https://github.com/settings/tokens. The Docker image pulls on first run. For a hosted alternative without Docker, see the github-mcp-server README for the HTTP transport against api.githubcopilot.com (requires a GitHub Copilot subscription)."
+    "notes": "Token needs classic PAT 'repo' scope (private repos) or the fine-grained equivalents for the resources you want (Pull requests: read/write, Issues: read/write, Contents: read, Actions: read). Create one at https://github.com/settings/tokens. ${VAR} expansion in MCP headers can be unreliable across Claude Code versions — if the server rejects auth, fall back to pre-resolving the header in the shell when registering: claude mcp add --scope <scope> --transport http github https://api.githubcopilot.com/mcp/ --header \"Authorization: Bearer $GITHUB_PERSONAL_ACCESS_TOKEN\"."
   },
   "mcp-atlassian": {
     "description": "Atlassian (Jira + Confluence) MCP server.",
@@ -32,6 +27,6 @@
       ["JIRA_PERSONAL_TOKEN"]
     ],
     "detection_tool": "mcp__mcp-atlassian__jira_create_issue",
-    "notes": "Cloud (atlassian.net): set JIRA_USERNAME + JIRA_API_TOKEN. Create the token at https://id.atlassian.com/manage-profile/security/api-tokens. Server / Data Center: set JIRA_PERSONAL_TOKEN (Personal Access Token from your Jira profile). Install uvx via 'curl -LsSf https://astral.sh/uv/install.sh | sh'. Docker / pipx alternatives are in the upstream README."
+    "notes": "Cloud (atlassian.net): set JIRA_USERNAME + JIRA_API_TOKEN. Create the token at https://id.atlassian.com/manage-profile/security/api-tokens. Server / Data Center: set JIRA_PERSONAL_TOKEN (Personal Access Token from your Jira profile). Install uvx via 'curl -LsSf https://astral.sh/uv/install.sh | sh'."
   }
 }

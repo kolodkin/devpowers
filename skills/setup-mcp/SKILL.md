@@ -92,6 +92,14 @@ End with: "Restart Claude Code (or run `/mcp`) so the new server registers. Then
 
 ## Adding a new MCP to the manifest
 
+**Transport preference, in order:**
+
+1. **HTTP / SSE** — official hosted endpoint provided by the upstream (e.g. GitHub's `api.githubcopilot.com/mcp/`). No local install, no daemon.
+2. **`uvx` or `npx`** — official PyPI / npm package published by the upstream.
+3. Anything else (binary download, source build) only if the upstream offers no HTTP/uvx/npx path.
+
+**Do not seed `docker run` entries.** Even when the upstream documents Docker as one option, prefer uvx / npx / HTTP if any of those is also officially supported. Docker adds a daemon dependency, a pull on first run, and image-tag drift — all avoidable when a lighter official channel exists.
+
 Append an entry to `mcps.json` with this shape:
 
 ```json
