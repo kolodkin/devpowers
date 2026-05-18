@@ -107,12 +107,32 @@ Do NOT loop polling on a CI failure — stop and let the user direct.
 
 ### 4c. Any pending
 
-Subscribe to PR activity so events wake the session instead of blocking on a poll:
+Arm a `Monitor` that polls the check-runs REST endpoint and emits only on state transitions. Stdout lines wake the session — no `sleep`, no polling in the main turn.
 
-- Call `subscribe_pr_activity` with `owner`, `repo`, `pullNumber: <pr>` (and `events` filter if available — at minimum CI + comments + reviews).
-- Print a one-line "watching #<pr> — will report when CI completes" status and **end your turn**. Do not `sleep` or poll.
-- When a `<github-webhook-activity>` event arrives, re-run Step 4 (a single `get_check_runs` call) to refresh classification, then act per 4a or 4b. If still pending, end the turn again.
-- When CI reaches a terminal state and you've reported, call `unsubscribe_pr_activity` to stop receiving further events for this PR.
+First, fetch the head SHA: call `mcp__github__pull_request_read` with `method: "get"`, `pullNumber: <pr>` and read `head.sha`. Confirm `$GH_TOKEN` is set (same token used in 4b); if not, surface that and follow the `/setup-mcp github` flow.
+
+Then arm a persistent `Monitor` (substitute `<owner>`, `<repo>`, `<sha>`):
+
+```bash
+prev=""
+while true; do
+  s=$(curl -fsSL \
+    -H "Authorization: Bearer $GH_TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    "https://api.github.com/repos/<owner>/<repo>/commits/<sha>/check-runs?per_page=100" || true)
+  cur=$(jq -r '.check_runs[] | select(.status=="completed") | "\(.name): \(.conclusion)"' <<<"$s" | sort)
+  comm -13 <(echo "$prev") <(echo "$cur")
+  prev=$cur
+  total=$(jq '.check_runs | length' <<<"$s")
+  pending=$(jq '[.check_runs[] | select(.status!="completed")] | length' <<<"$s")
+  [ "$total" -gt 0 ] && [ "$pending" -eq 0 ] && break
+  sleep 30
+done
+```
+
+Print a one-line "watching #<pr> via Monitor — will report when CI completes" status and **end your turn**.
+
+When a notification arrives, re-run Step 4 (a single `get_check_runs` MCP call) for full classification and act per 4a or 4b. The Monitor exits on its own when all checks are terminal; no explicit stop needed. If the user cancels mid-watch, use `TaskStop` with the Monitor's task ID.
 
 ## Step 5 — Address PR review comments
 
@@ -143,5 +163,5 @@ After pushing fixes, re-run `/check-pr` to verify the new CI run and pick up any
 ## Notes
 
 - The GitHub MCP server doesn't expose workflow log bodies as a tool, so Step 4b uses a direct REST API call (`/actions/jobs/{job_id}/logs`) with the same `GH_TOKEN` the MCP server uses. This is the one CLI-shaped escape hatch in the skill; if a future `mcp__github__*` tool returns job logs, replace the curl with it.
-- `subscribe_pr_activity` is session-bound. If the session ends before CI completes, the subscription dies; the next `/check-pr` will pick up wherever things are.
+- The `Monitor` is session-bound. If the session ends before CI completes, the monitor dies; the next `/check-pr` will pick up wherever things are.
 - This skill never pushes commits on its own. Fixes come from other skills (`git-commit`, manual edits + push). `/check-pr` only observes and reports.
