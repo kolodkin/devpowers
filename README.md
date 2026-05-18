@@ -19,9 +19,10 @@ A Claude Code plugin bundling developer productivity skills.
   - CLI: `gh`, `git`
   - Env: `GH_TOKEN`
   - Token: repo read — classic PAT `repo` (private repos), fine-grained `Actions: read`
-- **check-pr** — After a push, poll PR check status until complete, surface unresolved review comments, and report failure logs.
-  - CLI: `gh`, `git`
-  - Env: `GH_TOKEN`
+- **check-pr** — After a push, find the PR for the current branch, watch CI checks through to completion via the GitHub MCP server (event-driven, no polling), and surface unresolved review comments.
+  - MCP: `github` (registered via `/setup-mcp github`)
+  - CLI: `git`
+  - Env: `GITHUB_PERSONAL_ACCESS_TOKEN` (used by the MCP server)
   - Token: classic PAT `repo`, fine-grained `Pull requests: read/write`, `Actions: read`
 - **shortify** — Review and shorten markdown docs in subdirectories — cut wordiness, redundancy, and code duplication.
 - **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
