@@ -123,9 +123,7 @@ while true; do
   cur=$(jq -r '.check_runs[] | select(.status=="completed") | "\(.name): \(.conclusion)"' <<<"$s" | sort)
   comm -13 <(echo "$prev") <(echo "$cur")
   prev=$cur
-  total=$(jq '.check_runs | length' <<<"$s")
-  pending=$(jq '[.check_runs[] | select(.status!="completed")] | length' <<<"$s")
-  [ "$total" -gt 0 ] && [ "$pending" -eq 0 ] && break
+  jq -e '.check_runs | all(.status=="completed")' <<<"$s" >/dev/null && break
   sleep 30
 done
 ```
