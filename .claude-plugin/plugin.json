@@ -1,10 +1,10 @@
 {
   "name": "devpowers",
-  "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, git commit helper, local skill installer, markdown shortener, and local/remote Docker debuggers.",
-  "version": "1.1.0",
+  "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, git commit helper, local skill installer, markdown shortener, local/remote Docker debuggers, and MCP server setup.",
+  "version": "1.2.0",
   "author": {
     "name": "kolodkin"
   },
   "homepage": "https://github.com/kolodkin/devpowers",
-  "keywords": ["git", "commit", "github", "actions", "workflow", "ci", "pr", "pull-request", "review", "skill", "install", "markdown", "docs", "shortify", "docker", "ssh", "debug", "logs"]
+  "keywords": ["git", "commit", "github", "actions", "workflow", "ci", "pr", "pull-request", "review", "skill", "install", "markdown", "docs", "shortify", "docker", "ssh", "debug", "logs", "mcp", "setup"]
 }

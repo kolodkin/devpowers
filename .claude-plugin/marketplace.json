@@ -10,7 +10,7 @@
     {
       "name": "devpowers",
       "source": "./",
-      "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, git commit helper, local skill installer, markdown shortener, and local/remote Docker debuggers."
+      "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, git commit helper, local skill installer, markdown shortener, local/remote Docker debuggers, and MCP server setup."
     }
   ]
 }

@@ -19,15 +19,18 @@ A Claude Code plugin bundling developer productivity skills.
   - CLI: `gh`, `git`
   - Env: `GH_TOKEN`
   - Token: repo read — classic PAT `repo` (private repos), fine-grained `Actions: read`
-- **check-pr** — After a push, poll PR check status until complete, surface unresolved review comments, and report failure logs.
-  - CLI: `gh`, `git`
-  - Env: `GH_TOKEN`
+- **check-pr** — After a push, find the PR for the current branch, watch CI checks through to completion via the GitHub MCP server (event-driven, no polling), surface unresolved review comments, and fetch failed-job logs directly from the GitHub REST API.
+  - MCP: `github` (registered via `/setup-mcp github`)
+  - CLI: `git`, `curl`
+  - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the log-fetch curl)
   - Token: classic PAT `repo`, fine-grained `Pull requests: read/write`, `Actions: read`
 - **shortify** — Review and shorten markdown docs in subdirectories — cut wordiness, redundancy, and code duplication.
 - **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
   - CLI: `git`
 - **local-skill** — Download a single skill directory from a GitHub repository into the current project's `.claude/skills/` (public repos only).
   - CLI: `curl`, `tar`
+- **setup-mcp** — Register a known MCP server (from the curated `mcps.json` manifest) into `./.mcp.json` or the user's Claude Code config. Bounded to vetted entries; refuses unknown names. Use to install `github`, `mcp-atlassian`, or any future entry added to the manifest.
+  - CLI: `claude` (for `claude mcp add`), plus whatever the chosen MCP entry requires (`docker`, `uvx`, ...)
 - **ssh-docker-debug** — Discover and tail logs for Docker containers running on a remote VM over SSH (read-only).
   - CLI: `ssh`, `docker` (on the remote host), `curl`
 - **local-docker-debug** — Discover and tail logs for Docker containers running on the local Docker daemon (read-only).
