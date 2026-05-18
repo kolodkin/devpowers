@@ -86,12 +86,22 @@ Print a single SUCCESS block with the PR number, the list of passed checks, and 
 
 ### 4b. Any failed
 
-Print a FAILURE block listing each failed check by name with its `html_url`. **There is no MCP tool to fetch workflow log bodies** — surface the URLs and tell the user (or your next-turn self) to either:
+Print a FAILURE block listing each failed check by name with its `html_url`. Then, for each failed check that is GitHub-Actions-backed (the check run's `external_id` is set and the workflow lives in this repo), fetch the job log directly from the GitHub REST API:
 
-- Open the URL in a browser to read logs
-- Paste the relevant failing lines back into the chat so they can be triaged here
+```bash
+curl -fsSL \
+  -H "Authorization: Bearer $GH_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/$OWNER/$REPO/actions/jobs/$JOB_ID/logs"
+```
 
-If the failures are obviously triageable from the check name alone (e.g. `lint`, `typecheck`, `test`), offer to reproduce locally instead of waiting on log paste.
+`$JOB_ID` is the failed check run's `external_id`. The response is plain text — timestamped lines, `##[group]` markers, command output — identical in shape to `gh run view --log-failed`. `$GH_TOKEN` is the same Personal Access Token that the GitHub MCP server is authenticated with; see `/setup-mcp github` and `skills/setup-mcp/mcps.json` for how it's configured.
+
+If `$GH_TOKEN` isn't set, surface that and tell the user to follow the `/setup-mcp github` flow (which documents the PAT requirement) — do NOT fall back to `gh` CLI install.
+
+If a failed check isn't Actions-backed (third-party CI: CodeQL, external integrations), `external_id` won't map to a job ID. For those, the `html_url` is the only signal — ask the user to open it and paste relevant lines.
+
+When you have logs, present a tight summary (failed step name + last ~30 lines of error output) rather than dumping the full log. The full log is large — quote selectively.
 
 Do NOT loop polling on a CI failure — stop and let the user direct.
 
@@ -132,6 +142,6 @@ After pushing fixes, re-run `/check-pr` to verify the new CI run and pick up any
 
 ## Notes
 
-- Workflow log bodies aren't exposed by the GitHub MCP server today. If automated log retrieval becomes critical, add a `mcp__github__*` tool that returns logs to the manifest and update Step 4b — don't reintroduce `gh run view --log-failed` as a shadow path.
+- The GitHub MCP server doesn't expose workflow log bodies as a tool, so Step 4b uses a direct REST API call (`/actions/jobs/{job_id}/logs`) with the same `GH_TOKEN` the MCP server uses. This is the one CLI-shaped escape hatch in the skill; if a future `mcp__github__*` tool returns job logs, replace the curl with it.
 - `subscribe_pr_activity` is session-bound. If the session ends before CI completes, the subscription dies; the next `/check-pr` will pick up wherever things are.
 - This skill never pushes commits on its own. Fixes come from other skills (`git-commit`, manual edits + push). `/check-pr` only observes and reports.

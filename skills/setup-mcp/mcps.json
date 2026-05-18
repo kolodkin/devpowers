@@ -6,12 +6,12 @@
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
-        "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        "Authorization": "Bearer ${GH_TOKEN}"
       }
     },
-    "required_env": ["GITHUB_PERSONAL_ACCESS_TOKEN"],
+    "required_env": ["GH_TOKEN"],
     "detection_tool": "mcp__github__list_pull_requests",
-    "notes": "Token needs classic PAT 'repo' scope (private repos) or the fine-grained equivalents for the resources you want (Pull requests: read/write, Issues: read/write, Contents: read, Actions: read). Create one at https://github.com/settings/tokens. ${VAR} expansion in MCP headers can be unreliable across Claude Code versions — if the server rejects auth, fall back to pre-resolving the header in the shell when registering: claude mcp add --scope <scope> --transport http github https://api.githubcopilot.com/mcp/ --header \"Authorization: Bearer $GITHUB_PERSONAL_ACCESS_TOKEN\"."
+    "notes": "GH_TOKEN must be a long-lived Personal Access Token, not a rotating gh CLI OAuth token (gh refreshes those on its own schedule, so 'export GH_TOKEN=$(gh auth token)' in your shell rc will break the next time gh rotates). Create a PAT at https://github.com/settings/tokens — classic 'repo' scope for private repos, or fine-grained equivalents (Pull requests: read/write, Issues: read/write, Contents: read, Actions: read). Then 'export GH_TOKEN=<pat>' in ~/.zshrc / ~/.bashrc. ${VAR} expansion in MCP headers can be unreliable across Claude Code versions — if the server rejects auth, fall back to pre-resolving the header when registering: claude mcp add --scope <scope> --transport http github https://api.githubcopilot.com/mcp/ --header \"Authorization: Bearer $GH_TOKEN\". The same GH_TOKEN is reused by check-pr's log-fetch curl, so one token covers both."
   },
   "mcp-atlassian": {
     "description": "Atlassian (Jira + Confluence) MCP server.",
