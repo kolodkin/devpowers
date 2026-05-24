@@ -6,12 +6,13 @@
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
-        "Authorization": "Bearer ${GH_TOKEN}"
+        "Authorization": "Bearer ${GH_TOKEN}",
+        "X-MCP-Toolsets": "all"
       }
     },
     "required_env": ["GH_TOKEN"],
-    "detection_tool": "mcp__github__list_pull_requests",
-    "notes": "GH_TOKEN must be a long-lived Personal Access Token, not a rotating gh CLI OAuth token (gh refreshes those on its own schedule, so 'export GH_TOKEN=$(gh auth token)' in your shell rc will break the next time gh rotates). Create a PAT at https://github.com/settings/tokens — classic 'repo' scope for private repos, or fine-grained equivalents (Pull requests: read/write, Issues: read/write, Contents: read, Actions: read). Then 'export GH_TOKEN=<pat>' in ~/.zshrc / ~/.bashrc. ${VAR} expansion in MCP headers can be unreliable across Claude Code versions — if the server rejects auth, fall back to pre-resolving the header when registering: claude mcp add --scope <scope> --transport http github https://api.githubcopilot.com/mcp/ --header \"Authorization: Bearer $GH_TOKEN\". The same GH_TOKEN is reused by check-pr's log-fetch curl, so one token covers both."
+    "detection_tool": "mcp__github__get_job_logs",
+    "notes": "GH_TOKEN must be a long-lived Personal Access Token, not a rotating gh CLI OAuth token (gh refreshes those on its own schedule, so 'export GH_TOKEN=$(gh auth token)' in your shell rc will break the next time gh rotates). Create a PAT at https://github.com/settings/tokens — classic 'repo' + 'workflow' scopes for private repos, or fine-grained equivalents (Pull requests: read/write, Issues: read/write, Contents: read, Actions: read+write). Then 'export GH_TOKEN=<pat>' in ~/.zshrc / ~/.bashrc. The 'X-MCP-Toolsets: all' header enables the GitHub MCP actions toolset (mcp__github__actions_* + get_job_logs, used by /action-run and /action-check) on top of the default PR/issue/repo tools — the hosted server doesn't enable actions by default, and the single-toolset URL form (/mcp/x/actions) would drop the PR tools check-pr needs, so the header is the way to combine them. The exposed tool surface is still gated by the PAT's real scopes (Actions: read to inspect runs, Actions: write to trigger them). ${VAR} expansion in MCP headers can be unreliable across Claude Code versions — if the server rejects auth, fall back to pre-resolving the header when registering: claude mcp add --scope <scope> --transport http github https://api.githubcopilot.com/mcp/ --header \"Authorization: Bearer $GH_TOKEN\" --header \"X-MCP-Toolsets: all\". The same GH_TOKEN is reused by check-pr's log-fetch curl and the action-run/action-check Monitor poll, so one token covers all of them."
   },
   "mcp-atlassian": {
     "description": "Atlassian (Jira + Confluence) MCP server.",

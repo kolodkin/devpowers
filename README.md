@@ -11,18 +11,20 @@ A Claude Code plugin bundling developer productivity skills.
 
 ## Skills
 
-- **action-run** — Trigger and monitor any GitHub Actions `workflow_dispatch` workflow by name, gather required inputs, and fix failures automatically.
-  - CLI: `gh`, `git`
-  - Env: `GH_TOKEN`
-  - Token: repo write/admin — classic PAT `workflow`, fine-grained `Actions: write`
-- **action-check** — Check the latest GitHub Actions workflow run, monitor in-progress runs, and report failures with logs.
-  - CLI: `gh`, `git`
-  - Env: `GH_TOKEN`
-  - Token: repo read — classic PAT `repo` (private repos), fine-grained `Actions: read`
-- **check-pr** — After a push, find the PR for the current branch, watch CI checks through to completion via the GitHub MCP server (event-driven, no polling), surface unresolved review comments, and fetch failed-job logs directly from the GitHub REST API.
-  - MCP: `github` (registered via `/setup-mcp github`)
-  - CLI: `git`, `curl`
-  - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the log-fetch curl)
+- **action-run** — Trigger and monitor any GitHub Actions `workflow_dispatch` workflow by name through the GitHub MCP server's actions toolset, gather required inputs, and fix failures automatically.
+  - MCP: `github` with actions toolset (registered via `/setup-mcp github`)
+  - CLI: `git`, `curl` (curl only for the in-progress-run Monitor poll)
+  - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the Monitor poll)
+  - Token: classic PAT `repo` + `workflow`, fine-grained `Actions: write`
+- **action-check** — Check the latest GitHub Actions workflow run through the GitHub MCP server's actions toolset, monitor in-progress runs, and report failures with logs.
+  - MCP: `github` with actions toolset (registered via `/setup-mcp github`)
+  - CLI: `git`, `curl` (curl only for the in-progress-run Monitor poll)
+  - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the Monitor poll)
+  - Token: classic PAT `repo` (private repos), fine-grained `Actions: read`
+- **check-pr** — After a push, find the PR for the current branch, watch CI checks through to completion (Monitor poll), surface unresolved review comments, and fetch failed-job logs via the GitHub MCP server's actions toolset (`get_job_logs`).
+  - MCP: `github` with actions toolset (registered via `/setup-mcp github`)
+  - CLI: `git`, `curl` (curl only for the CI-watch Monitor poll)
+  - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the Monitor poll)
   - Token: classic PAT `repo`, fine-grained `Pull requests: read/write`, `Actions: read`
 - **shortify** — Review and shorten markdown docs in subdirectories — cut wordiness, redundancy, and code duplication.
 - **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
