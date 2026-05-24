@@ -86,18 +86,11 @@ Print a single SUCCESS block with the PR number, the list of passed checks, and 
 
 ### 4b. Any failed
 
-Print a FAILURE block listing each failed check by name with its `html_url`. Then, for each failed check that is GitHub-Actions-backed (the check run's `external_id` is set and the workflow lives in this repo), fetch the job log directly from the GitHub REST API:
+Print a FAILURE block listing each failed check by name with its `html_url`. Then, for each failed check that is GitHub-Actions-backed (the check run's `external_id` is set and the workflow lives in this repo), fetch the job log through the MCP **actions** toolset.
 
-```bash
-curl -fsSL \
-  -H "Authorization: Bearer $GH_TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  "https://api.github.com/repos/$OWNER/$REPO/actions/jobs/$JOB_ID/logs"
-```
+Call `mcp__github__get_job_logs` with `owner`, `repo`, `job_id: <external_id>`, `return_content: true`, and `tail_lines: 30`. It returns the tail of the job log directly — no curl, no `gh`. (It also accepts `run_id` + `failed_only: true` to pull every failed job in a run at once, if you'd rather batch.)
 
-`$JOB_ID` is the failed check run's `external_id`. The response is plain text — timestamped lines, `##[group]` markers, command output — identical in shape to `gh run view --log-failed`. `$GH_TOKEN` is the same Personal Access Token that the GitHub MCP server is authenticated with; see `/setup-mcp github` and `skills/setup-mcp/mcps.json` for how it's configured.
-
-If `$GH_TOKEN` isn't set, surface that and tell the user to follow the `/setup-mcp github` flow (which documents the PAT requirement) — do NOT fall back to `gh` CLI install.
+`get_job_logs` comes from the actions toolset, which `/setup-mcp github` enables via the `X-MCP-Toolsets: all` header. If it isn't in your tool list, the `github` server was registered before that toolset was added — re-run `/setup-mcp github` (reconfigure/force) and restart. One-off fallback, using the same `$GH_TOKEN` the MCP server authenticates with: `curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$OWNER/$REPO/actions/jobs/$JOB_ID/logs"`.
 
 If a failed check isn't Actions-backed (third-party CI: CodeQL, external integrations), `external_id` won't map to a job ID. For those, the `html_url` is the only signal — ask the user to open it and paste relevant lines.
 
@@ -160,6 +153,6 @@ After pushing fixes, re-run `/check-pr` to verify the new CI run and pick up any
 
 ## Notes
 
-- The GitHub MCP server doesn't expose workflow log bodies as a tool, so Step 4b uses a direct REST API call (`/actions/jobs/{job_id}/logs`) with the same `GH_TOKEN` the MCP server uses. This is the one CLI-shaped escape hatch in the skill; if a future `mcp__github__*` tool returns job logs, replace the curl with it.
+- Step 4b fetches failed-job logs via `mcp__github__get_job_logs` (the actions toolset, enabled by `/setup-mcp github`). The only remaining shell touchpoint is the Step 4c `Monitor`, which polls the REST check-runs endpoint with the same `$GH_TOKEN` because a `Monitor` can't call MCP tools mid-loop.
 - The `Monitor` is session-bound. If the session ends before CI completes, the monitor dies; the next `/check-pr` will pick up wherever things are.
 - This skill never pushes commits on its own. Fixes come from other skills (`git-commit`, manual edits + push). `/check-pr` only observes and reports.

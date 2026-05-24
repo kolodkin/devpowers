@@ -21,7 +21,7 @@ skills/<skill-name>/
 
 ## GitHub auth
 
-- Skills that talk to GitHub (`check-pr`, `action-run`, `action-check`) authenticate through the `github` MCP server, registered via `/setup-mcp github`. It uses a single long-lived `GH_TOKEN` Personal Access Token — the same token also covers the few REST `curl` escape hatches (`check-pr`'s job-log fetch, plus the in-progress CI/run `Monitor` polls in all three) that exist because a `Monitor` can't call MCP tools mid-loop.
+- Skills that talk to GitHub (`check-pr`, `action-run`, `action-check`) authenticate through the `github` MCP server, registered via `/setup-mcp github`. It uses a single long-lived `GH_TOKEN` Personal Access Token — the same token also covers the one remaining REST `curl` escape hatch — the in-progress CI/run `Monitor` polls in all three skills — which exists because a `Monitor` can't call MCP tools mid-loop.
 - `action-run`/`action-check` need the MCP **actions** toolset, which the hosted server doesn't enable by default; `skills/setup-mcp/mcps.json` turns it on with the `X-MCP-Toolsets: all` header. Per-skill token scopes (`repo`/`workflow`, `Actions: read`/`write`, `Pull requests`, etc.) are documented in the [README](README.md).
 
 ## References
