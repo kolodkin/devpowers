@@ -15,9 +15,14 @@ skills/<skill-name>/
 
 ## Conventions
 
-- Reference bundled scripts from SKILL.md using plain relative paths (e.g. `./check.sh`, `scripts/download.sh`). Claude resolves them against the skill's install directory, so the same SKILL.md works for both plugin installs (under `~/.claude/plugins/cache/.../skills/<name>/`) and project-level installs (under `<project>/.claude/skills/<name>/`). Avoid `${CLAUDE_PLUGIN_ROOT}` inside skill bodies — it's empty when the skill is installed project-level, and `${CLAUDE_PROJECT_DIR}` isn't reliably set in Bash tool invocations either ([anthropics/claude-code#6023](https://github.com/anthropics/claude-code/issues/6023)). Reserve `${CLAUDE_PLUGIN_ROOT}` for `hooks/*.json` and MCP/LSP configs, where the harness guarantees it's set.
+- Reference bundled scripts from SKILL.md using plain relative paths (e.g. `scripts/download.sh`, `scripts/update.sh`). Claude resolves them against the skill's install directory, so the same SKILL.md works for both plugin installs (under `~/.claude/plugins/cache/.../skills/<name>/`) and project-level installs (under `<project>/.claude/skills/<name>/`). Avoid `${CLAUDE_PLUGIN_ROOT}` inside skill bodies — it's empty when the skill is installed project-level, and `${CLAUDE_PROJECT_DIR}` isn't reliably set in Bash tool invocations either ([anthropics/claude-code#6023](https://github.com/anthropics/claude-code/issues/6023)). Reserve `${CLAUDE_PLUGIN_ROOT}` for `hooks/*.json` and MCP/LSP configs, where the harness guarantees it's set.
 - Use `${CLAUDE_PLUGIN_DATA}` for state that must survive plugin updates.
 - All component directories (`skills/`, `commands/`, `agents/`, `hooks/`) live at the plugin root — never inside `.claude-plugin/`.
+
+## GitHub auth
+
+- Skills that talk to GitHub (`check-pr`, `action-run`, `action-check`) authenticate through the `github` MCP server, registered via `/setup-mcp github`. It uses a single long-lived `GH_TOKEN` Personal Access Token — the same token also covers the few REST `curl` escape hatches (`check-pr`'s job-log fetch, plus the in-progress CI/run `Monitor` polls in all three) that exist because a `Monitor` can't call MCP tools mid-loop.
+- `action-run`/`action-check` need the MCP **actions** toolset, which the hosted server doesn't enable by default; `skills/setup-mcp/mcps.json` turns it on with the `X-MCP-Toolsets: all` header. Per-skill token scopes (`repo`/`workflow`, `Actions: read`/`write`, `Pull requests`, etc.) are documented in the [README](README.md).
 
 ## References
 
