@@ -1,11 +1,11 @@
 ---
 name: action-run
-description: Trigger and monitor any GitHub Actions workflow through the GitHub MCP server's actions toolset (no gh CLI). Use when the user asks to run, trigger, or execute a GitHub Action (e.g. "/action-run pypi publish", "/action-run generate migration"). Auto-invokes /setup-mcp github if the actions toolset isn't registered.
+description: Trigger and monitor any GitHub Actions workflow through the GitHub MCP server's actions toolset (no gh CLI). Use when the user asks to run, trigger, or execute a GitHub Action (e.g. "/action-run pypi publish", "/action-run generate migration"). Uses the github MCP server bundled with this plugin (requires GH_TOKEN).
 ---
 
 # Action Run Skill
 
-Trigger any GitHub Actions `workflow_dispatch` workflow by name, gather required inputs, monitor it to completion, and fix failures automatically — driven through the GitHub MCP server's **actions** toolset (`mcp__github__actions_*`, `mcp__github__get_job_logs`), exactly the way `/check-pr` drives PR/CI status through `mcp__github__pull_request_read`. No `gh` CLI.
+Trigger any GitHub Actions `workflow_dispatch` workflow by name, gather required inputs, monitor it to completion, and fix failures automatically — driven through the GitHub MCP server's **actions** toolset (`mcp__plugin_devpowers_github__actions_*`, `mcp__plugin_devpowers_github__get_job_logs`), exactly the way `/check-pr` drives PR/CI status through `mcp__plugin_devpowers_github__pull_request_read`. No `gh` CLI.
 
 ## Invocation Format
 
@@ -24,15 +24,14 @@ Examples:
 
 ## Step 0 — Ensure the GitHub MCP actions toolset is available
 
-This skill drives everything through the GitHub MCP server's **actions** toolset. GitHub's hosted server doesn't enable that toolset by default, so confirm the actions tools are registered before doing anything else.
+This skill drives everything through the **actions** toolset of the `github` MCP server bundled with this plugin — its `.mcp.json` loads as `mcp__plugin_devpowers_github__*`, and the `X-MCP-Toolsets: all` header turns the actions tools on.
 
-- **If `mcp__github__get_job_logs` (and the `mcp__github__actions_*` tools) are visible in your tool list**, proceed.
-- **If they're missing**, tell the user one line — "GitHub MCP actions toolset isn't registered; running `/setup-mcp github` first." — then invoke the `setup-mcp` skill via the Skill tool with argument `github`. Its `mcps.json` entry enables the actions toolset via the `X-MCP-Toolsets: all` header. After it completes, the user must restart Claude Code; stop the current run and ask them to re-invoke `/action-run` once the new server loads.
-- **If `/setup-mcp` reports the `github` server is already registered but the actions tools still aren't in your tool list**, the existing registration predates the actions toolset — ask `/setup-mcp` to reconfigure (force) so the `X-MCP-Toolsets` header is applied, then restart.
+- **If `mcp__plugin_devpowers_github__get_job_logs` (and the `mcp__plugin_devpowers_github__actions_*` tools) are visible in your tool list**, proceed.
+- **If they're missing**, the plugin's bundled `github` MCP didn't connect — almost always because `GH_TOKEN` isn't set (it authenticates with `Bearer ${GH_TOKEN}`). Tell the user to `export GH_TOKEN=<pat>` (a long-lived PAT) and restart Claude Code (or run `/reload-plugins`), then re-invoke `/action-run`. Stop until the server loads.
 
 Triggering `workflow_dispatch` needs a token with **Actions: write** (classic `workflow` scope / fine-grained `Actions: write`). A read-only token can list and inspect runs, but `run_workflow` will fail with 403.
 
-**Tool shape:** the hosted server groups Actions operations into method-based tools — `mcp__github__actions_run_trigger` (methods `run_workflow`, `rerun_failed_jobs`, `rerun_workflow_run`, `cancel_workflow_run`), `mcp__github__actions_list` (`list_workflows`, `list_workflow_runs`, `list_workflow_jobs`), `mcp__github__actions_get` (`get_workflow_run`), and the standalone `mcp__github__get_job_logs`. Server versions may rename these or shift methods; map the intent below to whatever `mcp__github__*` actions tools your session actually exposes, and read each tool's registered schema for exact filter/pagination parameters.
+**Tool shape:** the hosted server groups Actions operations into method-based tools — `mcp__plugin_devpowers_github__actions_run_trigger` (methods `run_workflow`, `rerun_failed_jobs`, `rerun_workflow_run`, `cancel_workflow_run`), `mcp__plugin_devpowers_github__actions_list` (`list_workflows`, `list_workflow_runs`, `list_workflow_jobs`), `mcp__plugin_devpowers_github__actions_get` (`get_workflow_run`), and the standalone `mcp__plugin_devpowers_github__get_job_logs`. Server versions may rename these or shift methods; map the intent below to whatever `mcp__plugin_devpowers_github__*` actions tools your session actually exposes, and read each tool's registered schema for exact filter/pagination parameters.
 
 ## Step 1 — Resolve repo and branch
 
@@ -69,11 +68,11 @@ Inputs already provided become entries in the `inputs` object (send values as st
 
 ## Step 5 — Check for an already-running workflow
 
-Don't re-trigger if one is already in flight. Call `mcp__github__actions_list` with method `list_workflow_runs`, `owner`, `repo`, and `resource_id: "<workflow>"` (the file name); use the tool's run filter to narrow to active runs (`status` in `queued` / `in_progress` / `waiting`). If any active run comes back, take the newest one's id and skip to **Step 7** (monitor it) instead of triggering. Otherwise continue.
+Don't re-trigger if one is already in flight. Call `mcp__plugin_devpowers_github__actions_list` with method `list_workflow_runs`, `owner`, `repo`, and `resource_id: "<workflow>"` (the file name); use the tool's run filter to narrow to active runs (`status` in `queued` / `in_progress` / `waiting`). If any active run comes back, take the newest one's id and skip to **Step 7** (monitor it) instead of triggering. Otherwise continue.
 
 ## Step 6 — Trigger the workflow
 
-Call `mcp__github__actions_run_trigger` with method `run_workflow`:
+Call `mcp__plugin_devpowers_github__actions_run_trigger` with method `run_workflow`:
 - `owner`, `repo`
 - `workflow_id: "<workflow>"` (file name)
 - `ref: "<branch>"`
@@ -83,11 +82,11 @@ Errors:
 - **403 / "Resource not accessible"** — the token lacks `Actions: write` (see Step 0).
 - **404 / 422** — bad `ref` (branch not pushed?) or an input that doesn't match the workflow's declared inputs. Re-check Steps 1 and 3.
 
-Then resolve the new run id — it takes a few seconds to register, so retry a couple of times: call `mcp__github__actions_list` method `list_workflow_runs` (`owner`, `repo`, `resource_id: "<workflow>"`) filtered to `branch=<branch>` and `event=workflow_dispatch`, newest first, and read the top run's `id`.
+Then resolve the new run id — it takes a few seconds to register, so retry a couple of times: call `mcp__plugin_devpowers_github__actions_list` method `list_workflow_runs` (`owner`, `repo`, `resource_id: "<workflow>"`) filtered to `branch=<branch>` and `event=workflow_dispatch`, newest first, and read the top run's `id`.
 
 ## Step 7 — Monitor the run to completion
 
-Snapshot the run: call `mcp__github__actions_get` method `get_workflow_run` (`owner`, `repo`, `resource_id: "<run_id>"`). If `status == "completed"`, skip to Step 8.
+Snapshot the run: call `mcp__plugin_devpowers_github__actions_get` method `get_workflow_run` (`owner`, `repo`, `resource_id: "<run_id>"`). If `status == "completed"`, skip to Step 8.
 
 If it's still running, arm a `Monitor` that emits on status transitions and **end your turn**. A `Monitor` runs a shell command and can't invoke MCP tools mid-loop, so it polls the REST run endpoint with the same `$GH_TOKEN` the MCP server authenticates with — the one shell touchpoint, identical to `/check-pr`'s CI watch. Confirm `$GH_TOKEN` is set first; if not, surface that (it's the same token the MCP uses).
 
@@ -106,13 +105,13 @@ while true; do
 done
 ```
 
-The emitted line carries `status` and `conclusion`, covering the success **and** failure terminal states. Print a one-line "watching run #<run_id> via Monitor — will report when it completes" status and end your turn. When the notification arrives, re-call `mcp__github__actions_get` (`get_workflow_run`) for the final `conclusion` and act per Step 8. If the user cancels mid-watch, use `TaskStop` with the Monitor's task ID.
+The emitted line carries `status` and `conclusion`, covering the success **and** failure terminal states. Print a one-line "watching run #<run_id> via Monitor — will report when it completes" status and end your turn. When the notification arrives, re-call `mcp__plugin_devpowers_github__actions_get` (`get_workflow_run`) for the final `conclusion` and act per Step 8. If the user cancels mid-watch, use `TaskStop` with the Monitor's task ID.
 
 ## Step 8 — Report result and handle failures
 
 **On `conclusion == "success"`** — report the run URL (`https://github.com/<owner>/<repo>/actions/runs/<run_id>`) and stop.
 
-**On failure** (`failure` / `cancelled` / `timed_out`) — fetch the failed job logs through MCP. Call `mcp__github__get_job_logs` with:
+**On failure** (`failure` / `cancelled` / `timed_out`) — fetch the failed job logs through MCP. Call `mcp__plugin_devpowers_github__get_job_logs` with:
 - `owner`, `repo`
 - `run_id: <run_id>`
 - `failed_only: true`
