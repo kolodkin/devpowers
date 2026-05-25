@@ -12,17 +12,17 @@ A Claude Code plugin bundling developer productivity skills.
 ## Skills
 
 - **action-run** — Trigger and monitor any GitHub Actions `workflow_dispatch` workflow by name through the GitHub MCP server's actions toolset, gather required inputs, and fix failures automatically.
-  - MCP: `github` with actions toolset (registered via `/setup-mcp github`)
+  - MCP: `github` with actions toolset (bundled with this plugin; requires `GH_TOKEN`)
   - CLI: `git`, `curl` (curl only for the in-progress-run Monitor poll)
   - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the Monitor poll)
   - Token: classic PAT `repo` + `workflow`, fine-grained `Actions: write`
 - **action-check** — Check the latest GitHub Actions workflow run through the GitHub MCP server's actions toolset, monitor in-progress runs, and report failures with logs.
-  - MCP: `github` with actions toolset (registered via `/setup-mcp github`)
+  - MCP: `github` with actions toolset (bundled with this plugin; requires `GH_TOKEN`)
   - CLI: `git`, `curl` (curl only for the in-progress-run Monitor poll)
   - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the Monitor poll)
   - Token: classic PAT `repo` (private repos), fine-grained `Actions: read`
 - **check-pr** — After a push, find the PR for the current branch, watch CI checks through to completion (Monitor poll), surface unresolved review comments, and fetch failed-job logs via the GitHub MCP server's actions toolset (`get_job_logs`).
-  - MCP: `github` with actions toolset (registered via `/setup-mcp github`)
+  - MCP: `github` with actions toolset (bundled with this plugin; requires `GH_TOKEN`)
   - CLI: `git`, `curl` (curl only for the CI-watch Monitor poll)
   - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the Monitor poll)
   - Token: classic PAT `repo`, fine-grained `Pull requests: read/write`, `Actions: read`

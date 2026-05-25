@@ -7,8 +7,8 @@ description: >
   their run URLs so they can be triaged. Use after every git push, or
   when the user asks to check PR / CI / review status (e.g.
   "/check-pr", "/check-pr --comments-only", "check the PR", "is CI
-  green?"). Auto-invokes /setup-mcp github if the GitHub MCP server
-  isn't registered.
+  green?"). Uses the github MCP server bundled with this plugin
+  (requires GH_TOKEN).
 ---
 
 # PR Check Skill
@@ -24,10 +24,10 @@ You are a PROACTIVE GitHub PR assistant. After EVERY git push, automatically run
 
 ## Step 0 — Ensure GitHub MCP is available
 
-This skill drives everything through the `mcp__github__*` tools. Confirm the server is registered before doing anything else.
+This skill drives everything through the `mcp__plugin_devpowers_github__*` tools — the `github` MCP server bundled with this plugin (its `.mcp.json`).
 
-- **If `mcp__github__list_pull_requests` is visible in your tool list**, proceed.
-- **If it's missing**, tell the user one line — "GitHub MCP isn't registered; running `/setup-mcp github` first." — then invoke the `setup-mcp` skill via the Skill tool with argument `github project` so it writes/updates the `github` server (with the `X-MCP-Toolsets: all` header) into the project's `./.mcp.json`. After it completes, the user will need to restart Claude Code; stop the current run and ask them to re-invoke `/check-pr` once the new server is loaded.
+- **If `mcp__plugin_devpowers_github__list_pull_requests` is visible in your tool list**, proceed.
+- **If it's missing**, the plugin's bundled `github` MCP didn't connect — almost always because `GH_TOKEN` isn't set (it authenticates with `Bearer ${GH_TOKEN}`). Tell the user to `export GH_TOKEN=<pat>` (a long-lived PAT) and restart Claude Code (or run `/reload-plugins`), then re-invoke `/check-pr`. Stop until the server loads.
 
 ## Step 1 — Resolve repo and branch
 
@@ -42,7 +42,7 @@ Parse `owner/repo` from the remote URL. Accept `github.com[:/]<owner>/<repo>(.gi
 
 ## Step 2 — Find the PR for this branch
 
-Call `mcp__github__list_pull_requests` with `owner`, `repo`, `state: "open"`, and `head: "<owner>:<branch>"`. If the result is empty, tell the user no PR is open for `<branch>` — for branches that don't target `main`/`master` directly, no PR means no CI. Offer to create one with `mcp__github__create_pull_request` only if the user explicitly asks; otherwise stop.
+Call `mcp__plugin_devpowers_github__list_pull_requests` with `owner`, `repo`, `state: "open"`, and `head: "<owner>:<branch>"`. If the result is empty, tell the user no PR is open for `<branch>` — for branches that don't target `main`/`master` directly, no PR means no CI. Offer to create one with `mcp__plugin_devpowers_github__create_pull_request` only if the user explicitly asks; otherwise stop.
 
 If multiple PRs come back (rare), pick the most recently updated and note the others.
 
@@ -50,7 +50,7 @@ Cache the PR number (`<pr>`) for the rest of the run.
 
 ## Step 3 — Check review comments
 
-Call `mcp__github__pull_request_read` with `method: "get_review_comments"`, `owner`, `repo`, `pullNumber: <pr>`. The response contains review threads with `isResolved`, `isOutdated`, `isCollapsed` flags and the comments inside each.
+Call `mcp__plugin_devpowers_github__pull_request_read` with `method: "get_review_comments"`, `owner`, `repo`, `pullNumber: <pr>`. The response contains review threads with `isResolved`, `isOutdated`, `isCollapsed` flags and the comments inside each.
 
 Filter to threads where `isResolved == false && isOutdated == false`. For each:
 
@@ -66,13 +66,13 @@ If there are unresolved threads, render a compact summary block:
   ...
 ```
 
-Also call `mcp__github__pull_request_read` with `method: "get"` to read `reviewDecision` (`APPROVED`, `CHANGES_REQUESTED`, `REVIEW_REQUIRED`, or null) and surface it.
+Also call `mcp__plugin_devpowers_github__pull_request_read` with `method: "get"` to read `reviewDecision` (`APPROVED`, `CHANGES_REQUESTED`, `REVIEW_REQUIRED`, or null) and surface it.
 
 If invoked with `--comments-only`, stop here. Otherwise continue to Step 4.
 
 ## Step 4 — Check CI status
 
-Call `mcp__github__pull_request_read` with `method: "get_check_runs"`, `owner`, `repo`, `pullNumber: <pr>`. Each check run has `name`, `status` (`queued` / `in_progress` / `completed`), `conclusion` (`success` / `failure` / `cancelled` / `skipped` / `neutral` / `timed_out`), and `html_url`.
+Call `mcp__plugin_devpowers_github__pull_request_read` with `method: "get_check_runs"`, `owner`, `repo`, `pullNumber: <pr>`. Each check run has `name`, `status` (`queued` / `in_progress` / `completed`), `conclusion` (`success` / `failure` / `cancelled` / `skipped` / `neutral` / `timed_out`), and `html_url`.
 
 Classify the runs into three buckets:
 
@@ -88,9 +88,9 @@ Print a single SUCCESS block with the PR number, the list of passed checks, and 
 
 Print a FAILURE block listing each failed check by name with its `html_url`. Then, for each failed check that is GitHub-Actions-backed (the check run's `external_id` is set and the workflow lives in this repo), fetch the job log through the MCP **actions** toolset.
 
-Call `mcp__github__get_job_logs` with `owner`, `repo`, `job_id: <external_id>`, `return_content: true`, and `tail_lines: 30`. It returns the tail of the job log directly — no curl, no `gh`. (It also accepts `run_id` + `failed_only: true` to pull every failed job in a run at once, if you'd rather batch.)
+Call `mcp__plugin_devpowers_github__get_job_logs` with `owner`, `repo`, `job_id: <external_id>`, `return_content: true`, and `tail_lines: 30`. It returns the tail of the job log directly — no curl, no `gh`. (It also accepts `run_id` + `failed_only: true` to pull every failed job in a run at once, if you'd rather batch.)
 
-`get_job_logs` comes from the actions toolset, which `/setup-mcp github` enables via the `X-MCP-Toolsets: all` header. If it isn't in your tool list, the `github` server was registered before that toolset was added — re-run `/setup-mcp github` (reconfigure/force) and restart. One-off fallback, using the same `$GH_TOKEN` the MCP server authenticates with: `curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$OWNER/$REPO/actions/jobs/$JOB_ID/logs"`.
+`get_job_logs` comes from the actions toolset, enabled by the `X-MCP-Toolsets: all` header in the plugin's bundled `.mcp.json`. If it isn't in your tool list, the plugin's `github` MCP didn't load — see Step 0. One-off fallback, using the same `$GH_TOKEN` the MCP server authenticates with: `curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$OWNER/$REPO/actions/jobs/$JOB_ID/logs"`.
 
 If a failed check isn't Actions-backed (third-party CI: CodeQL, external integrations), `external_id` won't map to a job ID. For those, the `html_url` is the only signal — ask the user to open it and paste relevant lines.
 
@@ -102,7 +102,7 @@ Do NOT loop polling on a CI failure — stop and let the user direct.
 
 Arm a `Monitor` that polls the check-runs REST endpoint and emits only on state transitions. Stdout lines wake the session — no `sleep`, no polling in the main turn.
 
-First, fetch the head SHA: call `mcp__github__pull_request_read` with `method: "get"`, `pullNumber: <pr>` and read `head.sha`. Confirm `$GH_TOKEN` is set (same token used in 4b); if not, surface that and follow the `/setup-mcp github` flow.
+First, fetch the head SHA: call `mcp__plugin_devpowers_github__pull_request_read` with `method: "get"`, `pullNumber: <pr>` and read `head.sha`. Confirm `$GH_TOKEN` is set (same token used in 4b); if not, surface that — it's the token the plugin's `github` MCP authenticates with too (see Step 0).
 
 Then arm a persistent `Monitor` (substitute `<owner>`, `<repo>`, `<sha>`):
 
@@ -133,7 +133,7 @@ If Step 3 surfaced unresolved threads, address them ONLY (skip resolved/outdated
 1. Make the requested change, commit, push.
 2. Reply in the comment thread to record what was fixed:
    ```
-   mcp__github__add_reply_to_pull_request_comment(
+   mcp__plugin_devpowers_github__add_reply_to_pull_request_comment(
      owner, repo, pullNumber: <pr>,
      commentId: <root-id>,
      body: "[Agent] Fixed - <one line: what was fixed>"
@@ -153,6 +153,6 @@ After pushing fixes, re-run `/check-pr` to verify the new CI run and pick up any
 
 ## Notes
 
-- Step 4b fetches failed-job logs via `mcp__github__get_job_logs` (the actions toolset, enabled by `/setup-mcp github`). The only remaining shell touchpoint is the Step 4c `Monitor`, which polls the REST check-runs endpoint with the same `$GH_TOKEN` because a `Monitor` can't call MCP tools mid-loop.
+- Step 4b fetches failed-job logs via `mcp__plugin_devpowers_github__get_job_logs` (the actions toolset, enabled by the `X-MCP-Toolsets: all` header in the plugin's bundled `.mcp.json`). The only remaining shell touchpoint is the Step 4c `Monitor`, which polls the REST check-runs endpoint with the same `$GH_TOKEN` because a `Monitor` can't call MCP tools mid-loop.
 - The `Monitor` is session-bound. If the session ends before CI completes, the monitor dies; the next `/check-pr` will pick up wherever things are.
 - This skill never pushes commits on its own. Fixes come from other skills (`git-commit`, manual edits + push). `/check-pr` only observes and reports.
