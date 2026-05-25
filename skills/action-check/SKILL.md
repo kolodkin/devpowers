@@ -25,7 +25,7 @@ Examples:
 This skill drives everything through the GitHub MCP server's **actions** toolset. GitHub's hosted server doesn't enable that toolset by default, so confirm the actions tools are registered before doing anything else.
 
 - **If `mcp__github__get_job_logs` (and the `mcp__github__actions_*` tools) are visible in your tool list**, proceed.
-- **If they're missing**, tell the user one line — "GitHub MCP actions toolset isn't registered; running `/setup-mcp github` first." — then invoke the `setup-mcp` skill via the Skill tool with argument `github project` so it writes/updates the `github` server into the project's `./.mcp.json` (its `mcps.json` entry includes the `X-MCP-Toolsets: all` header that enables the actions toolset). After it completes, the user must restart Claude Code; stop the current run and ask them to re-invoke `/action-check` once the new server loads.
+- **If they're missing**, tell the user "GitHub MCP actions toolset isn't registered; running `/setup-mcp github` first," then invoke the `setup-mcp` skill with `github project` to write the `github` server — with the actions-enabling `X-MCP-Toolsets: all` header — into `./.mcp.json`. Then stop: the user must restart Claude Code and re-invoke `/action-check` once the new server loads.
 - **If `/setup-mcp` reports the `github` server is already registered but the actions tools still aren't in your tool list**, the existing registration predates the actions toolset — ask `/setup-mcp` to reconfigure (force) so the `X-MCP-Toolsets` header is applied, then restart.
 
 Reading runs only needs **Actions: read** (classic `repo` scope / fine-grained `Actions: read`).
