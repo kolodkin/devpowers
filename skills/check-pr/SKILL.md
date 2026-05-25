@@ -27,7 +27,7 @@ You are a PROACTIVE GitHub PR assistant. After EVERY git push, automatically run
 This skill drives everything through the `mcp__github__*` tools. Confirm the server is registered before doing anything else.
 
 - **If `mcp__github__list_pull_requests` is visible in your tool list**, proceed.
-- **If it's missing**, tell the user one line — "GitHub MCP isn't registered; running `/setup-mcp github` first." — then invoke the `setup-mcp` skill via the Skill tool with argument `github`. After it completes, the user will need to restart Claude Code; stop the current run and ask them to re-invoke `/check-pr` once the new server is loaded.
+- **If it's missing**, tell the user one line — "GitHub MCP isn't registered; running `/setup-mcp github` first." — then invoke the `setup-mcp` skill via the Skill tool with argument `github project` so it writes/updates the `github` server (with the `X-MCP-Toolsets: all` header) into the project's `./.mcp.json`. After it completes, the user will need to restart Claude Code; stop the current run and ask them to re-invoke `/check-pr` once the new server is loaded.
 
 ## Step 1 — Resolve repo and branch
 

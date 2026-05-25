@@ -18,8 +18,11 @@ Register one of the MCP servers listed in `./mcps.json` into either the project'
 
 ```
 /setup-mcp                # list known MCPs, prompt to pick one
-/setup-mcp <name>         # set up the named MCP
+/setup-mcp <name>         # set up the named MCP (prompt for scope)
+/setup-mcp <name> <scope> # scope preselected, skip the prompt: project | user | manual
 ```
+
+`<scope>` is optional. `project` and `manual` both write the project's `./.mcp.json`; `user` writes the Claude Code user config. Callers that need the server in `./.mcp.json` (e.g. `/action-run`, `/action-check`, `/check-pr`) pass `project`.
 
 ## Flow
 
@@ -52,7 +55,7 @@ Print the exact JSON snippet that would be added under `mcpServers.<name>` — i
 
 ### 5. Ask for scope
 
-Use `AskUserQuestion` with these three options:
+If the invocation already named a scope (`project`, `user`, or `manual`) — e.g. another skill called `/setup-mcp github project` to write straight into `./.mcp.json` — skip this prompt and use it. Otherwise use `AskUserQuestion` with these three options:
 
 - **Project (`./.mcp.json`, shared)** — `claude mcp add --scope project ...`. Checked into the repo so teammates get the same MCP. Use this for MCPs the whole project needs.
 - **User (personal, all projects)** — `claude mcp add --scope user ...`. Lives in your Claude Code user config; applies to every project on this machine. Not shared.
