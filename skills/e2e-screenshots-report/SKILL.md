@@ -64,7 +64,9 @@ Failing tests still produce PNGs and still belong in the report.
 
 ## 2. Run the capture script
 
-Pick the runtime that matches the project — both scripts produce the same self-contained HTML:
+Both scripts convert PNG screenshots to JPEG (quality 80) before base64-embedding — a single `index.html` of 30 screenshots is ~3 MB instead of ~30 MB. JPEG inputs are passed through.
+
+Pick the runtime that matches the project:
 
 **JS / TS projects** (Node already available):
 
@@ -72,12 +74,16 @@ Pick the runtime that matches the project — both scripts produce the same self
 node report.js --out /tmp/e2e-report/index.html
 ```
 
+First run auto-installs `jimp` (pure-JS, no native deps) into `/tmp/.e2e-report-tools` — shared across projects, your `node_modules` stays clean.
+
 **Python projects:**
 
 ```bash
 uv run report.py --out /tmp/e2e-report/index.html
-# or: python report.py --out /tmp/e2e-report/index.html
+# or: python report.py --out /tmp/e2e-report/index.html  (after `pip install Pillow`)
 ```
+
+`uv run` resolves Pillow automatically via the inline PEP-723 dep block.
 
 Both default `--in` to `test-results/`. Pass `--in <dir>` if the project writes screenshots somewhere else.
 

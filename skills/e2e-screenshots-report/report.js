@@ -3,24 +3,49 @@
  * e2e-screenshots-report — post-process Playwright screenshots into a
  * self-contained HTML report.
  *
- * Walks a Playwright test-results directory, collects every PNG produced by
- * `screenshot: 'on'` (Playwright JS) or `--screenshot on` (pytest-playwright),
- * groups them by test, and emits one base64-embedded index.html.
+ * Walks a Playwright test-results directory, collects every screenshot
+ * (PNG or JPEG), converts PNGs to JPEG quality 80 to keep the bundle small
+ * (3-10x smaller than PNG embeds), and emits one base64-embedded index.html.
  *
- * Zero deps — uses only Node stdlib.
+ * Requires `jimp` (pure-JS, no native deps). On first run, auto-installs it
+ * to /tmp/.e2e-report-tools so the user's project node_modules stays clean.
  *
  * Usage:
  *   node report.js [--in test-results] [--out /tmp/e2e-report/index.html]
  */
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
+
+const JPEG_QUALITY = 80;
+const IMG_EXTS = new Set(['.png', '.jpg', '.jpeg']);
+
+// --- jimp bootstrap ---------------------------------------------------------
+// Lazy-install jimp into a shared /tmp cache dir, so multiple projects can
+// reuse it and none of them get a stray node_modules entry.
+const TOOLS_DIR = '/tmp/.e2e-report-tools';
+function loadJimp() {
+  try { return require('jimp'); } catch (_) {}
+  try { return require(path.join(TOOLS_DIR, 'node_modules', 'jimp')); } catch (_) {}
+  console.error('installing jimp into', TOOLS_DIR, '(one-time, ~5s)...');
+  fs.mkdirSync(TOOLS_DIR, { recursive: true });
+  if (!fs.existsSync(path.join(TOOLS_DIR, 'package.json'))) {
+    fs.writeFileSync(path.join(TOOLS_DIR, 'package.json'), '{"private":true}');
+  }
+  execSync('npm install --silent --no-save --no-audit --no-fund jimp@^0.22', {
+    cwd: TOOLS_DIR, stdio: 'inherit',
+  });
+  return require(path.join(TOOLS_DIR, 'node_modules', 'jimp'));
+}
+const Jimp = loadJimp();
+// ----------------------------------------------------------------------------
 
 function walk(dir) {
   const out = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, entry.name);
     if (entry.isDirectory()) out.push(...walk(p));
-    else if (entry.isFile() && p.toLowerCase().endsWith('.png')) out.push(p);
+    else if (entry.isFile() && IMG_EXTS.has(path.extname(p).toLowerCase())) out.push(p);
   }
   return out;
 }
@@ -42,27 +67,39 @@ function esc(s) {
 
 function collect(inDir) {
   const shots = [];
-  for (const png of walk(inDir).sort()) {
-    const rel = path.relative(inDir, png);
+  for (const img of walk(inDir).sort()) {
+    const rel = path.relative(inDir, img);
     const parts = rel.split(path.sep);
-    const stem = path.basename(png, '.png');
+    const stem = path.basename(img, path.extname(img));
     if (parts.length >= 2) {
-      shots.push([`${humanize(parts[0])} — ${stem}`, png]);
+      shots.push([`${humanize(parts[0])} — ${stem}`, img]);
     } else {
-      shots.push([stem, png]);
+      shots.push([stem, img]);
     }
   }
   return shots;
 }
 
-function buildReport(shots, outPath) {
+async function encodeAsJpeg(src) {
+  const ext = path.extname(src).toLowerCase();
+  if (ext === '.jpg' || ext === '.jpeg') {
+    return fs.readFileSync(src).toString('base64');
+  }
+  const img = await Jimp.read(src);
+  img.quality(JPEG_QUALITY);
+  const buf = await img.getBufferAsync(Jimp.MIME_JPEG);
+  return buf.toString('base64');
+}
+
+async function buildReport(shots, outPath) {
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
 
   const nav = [];
   const sections = [];
-  shots.forEach(([label, png], idx) => {
+  for (let idx = 0; idx < shots.length; idx++) {
+    const [label, img] = shots[idx];
     const i = idx + 1;
-    const data = fs.readFileSync(png).toString('base64');
+    const data = await encodeAsJpeg(img);
     const anchor = `shot-${i}`;
     nav.push(
       `<a href="#${anchor}">${String(i).padStart(2, '0')}. ${esc(label)}</a>`,
@@ -70,10 +107,10 @@ function buildReport(shots, outPath) {
     sections.push(
       `<section id="${anchor}">` +
       `<h2>${String(i).padStart(2, '0')}. ${esc(label)}</h2>` +
-      `<img src="data:image/png;base64,${data}" alt="${esc(label)}">` +
+      `<img src="data:image/jpeg;base64,${data}" alt="${esc(label)}">` +
       `</section>`,
     );
-  });
+  }
 
   const html = `<!doctype html>
 <html><head><meta charset="utf-8"><title>e2e screenshot report</title>
@@ -117,17 +154,22 @@ function parseArgs(argv) {
   return args;
 }
 
-const { inDir, outPath } = parseArgs(process.argv);
-if (!fs.existsSync(inDir) || !fs.statSync(inDir).isDirectory()) {
-  console.error(`input directory not found: ${inDir}`);
+(async () => {
+  const { inDir, outPath } = parseArgs(process.argv);
+  if (!fs.existsSync(inDir) || !fs.statSync(inDir).isDirectory()) {
+    console.error(`input directory not found: ${inDir}`);
+    process.exit(1);
+  }
+  const shots = collect(inDir);
+  if (!shots.length) {
+    console.error(
+      `no screenshots found under ${inDir} — check the tests produced PNGs/JPEGs, or pass --in <dir>`,
+    );
+    process.exit(1);
+  }
+  const out = await buildReport(shots, outPath);
+  console.log(`report: ${out}  (${shots.length} screenshots, JPEG quality ${JPEG_QUALITY})`);
+})().catch((e) => {
+  console.error(e);
   process.exit(1);
-}
-const shots = collect(inDir);
-if (!shots.length) {
-  console.error(
-    `no PNGs found under ${inDir} — did Playwright run with screenshot: 'on'?`,
-  );
-  process.exit(1);
-}
-const out = buildReport(shots, outPath);
-console.log(`report: ${out}  (${shots.length} screenshots)`);
+});

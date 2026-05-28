@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.10"
-# dependencies = []
+# dependencies = ["Pillow>=10"]
 # ///
 """
 e2e-screenshots-report — post-process Playwright screenshots into a
 self-contained HTML report.
 
-Walks a Playwright test-results directory, collects every PNG produced by
-`screenshot: 'on'` (Playwright JS) or `--screenshot on` (pytest-playwright),
-groups them by test, and emits a single `index.html` with the images
-base64-embedded — no external assets.
+Walks a Playwright test-results directory, collects every screenshot
+(PNG or JPEG), converts PNGs to JPEG quality 80 to keep the bundle small
+(3-10x smaller than PNG embeds), and emits one base64-embedded index.html.
 
 Usage:
     uv run report.py [--in test-results] [--out /tmp/e2e-report/index.html]
@@ -22,26 +21,45 @@ import argparse
 import base64
 import re
 from html import escape
+from io import BytesIO
 from pathlib import Path
+
+from PIL import Image
+
+JPEG_QUALITY = 80
+IMG_EXTS = {".png", ".jpg", ".jpeg"}
 
 
 def collect(in_dir: Path) -> list[tuple[str, Path]]:
-    """Return [(label, png_path)] in stable order.
+    """Return [(label, img_path)] in stable order.
 
-    Playwright writes screenshots under `test-results/<test-id>/<name>.png`.
+    Playwright writes screenshots under `test-results/<test-id>/<name>.{png,jpg}`.
     Use the test-id directory name as the human label.
     """
     shots: list[tuple[str, Path]] = []
-    for png in sorted(in_dir.rglob("*.png")):
-        rel = png.relative_to(in_dir)
+    candidates = (p for p in in_dir.rglob("*") if p.is_file() and p.suffix.lower() in IMG_EXTS)
+    for img in sorted(candidates):
+        rel = img.relative_to(in_dir)
         parts = rel.parts
         if len(parts) >= 2:
             test_label = humanize(parts[0])
-            shot_label = png.stem
-            shots.append((f"{test_label} — {shot_label}", png))
+            shot_label = img.stem
+            shots.append((f"{test_label} — {shot_label}", img))
         else:
-            shots.append((png.stem, png))
+            shots.append((img.stem, img))
     return shots
+
+
+def encode_as_jpeg(src: Path) -> str:
+    """Return base64-encoded JPEG bytes. PNGs are converted, JPEGs passed through."""
+    if src.suffix.lower() in {".jpg", ".jpeg"}:
+        return base64.b64encode(src.read_bytes()).decode("ascii")
+    img = Image.open(src)
+    if img.mode != "RGB":
+        img = img.convert("RGB")
+    buf = BytesIO()
+    img.save(buf, format="JPEG", quality=JPEG_QUALITY, optimize=True)
+    return base64.b64encode(buf.getvalue()).decode("ascii")
 
 
 def humanize(test_id: str) -> str:
@@ -67,14 +85,14 @@ def build_report(shots: list[tuple[str, Path]], out_path: Path) -> Path:
 
     nav: list[str] = []
     sections: list[str] = []
-    for i, (label, png) in enumerate(shots, 1):
-        data = base64.b64encode(png.read_bytes()).decode("ascii")
+    for i, (label, img) in enumerate(shots, 1):
+        data = encode_as_jpeg(img)
         anchor = f"shot-{i}"
         nav.append(f'<a href="#{anchor}">{i:02d}. {escape(label)}</a>')
         sections.append(
             f'<section id="{anchor}">'
             f'<h2>{i:02d}. {escape(label)}</h2>'
-            f'<img src="data:image/png;base64,{data}" alt="{escape(label)}">'
+            f'<img src="data:image/jpeg;base64,{data}" alt="{escape(label)}">'
             f'</section>'
         )
 
@@ -118,8 +136,8 @@ def main() -> None:
     shots = collect(args.in_dir)
     if not shots:
         raise SystemExit(
-            f"no PNGs found under {args.in_dir} — did Playwright run with "
-            "screenshot=on (JS) or --screenshot on (Python)?"
+            f"no screenshots found under {args.in_dir} — check the tests "
+            "produced PNGs/JPEGs, or pass --in <dir>"
         )
 
     out = build_report(shots, args.out)
