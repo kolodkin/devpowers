@@ -27,6 +27,8 @@ A Claude Code plugin bundling developer productivity skills.
   - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the Monitor poll)
   - Token: classic PAT `repo`, fine-grained `Pull requests: read/write`, `Actions: read`
 - **shortify** — Review and shorten markdown docs in subdirectories — cut wordiness, redundancy, and code duplication.
+- **e2e-screenshots-report** — Mirror the project's existing e2e tests through a real browser to produce a self-contained `index.html` of labeled UI screenshots (PR-ready). Ships parallel `capture.py` / `capture.js` templates; picks one by e2e test language.
+  - CLI: `playwright` (`uv run` for Python, `node` + `npm install playwright` for JS/TS), `curl` (preflight base-URL check)
 - **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
   - CLI: `git`
 - **setup-mcp** — Register a known MCP server (from the curated `mcps.json` manifest) into `./.mcp.json` or the user's Claude Code config. Bounded to vetted entries; refuses unknown names. Use to install `github`, `mcp-atlassian`, or any future entry added to the manifest.
