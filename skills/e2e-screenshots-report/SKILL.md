@@ -1,97 +1,106 @@
 ---
 name: e2e-screenshots-report
 description: >
-  Generate a self-contained HTML report of e2e UI screenshots by mirroring the
-  project's existing e2e tests through a real browser. Use when the user asks
-  for an e2e screenshot report, a visual record of UI flows, a PR-ready visual
-  of the running app, or invokes `/e2e-screenshots-report`. Stops if the
-  project has no e2e tests to mirror.
+  Generate a self-contained HTML report of e2e UI screenshots by running the
+  project's existing Playwright tests with screenshots enabled and
+  post-processing the output. Use when the user asks for an e2e screenshot
+  report, a visual record of UI flows, a PR-ready visual of the running app,
+  or invokes `/e2e-screenshots-report`. Playwright-only. Stops if the project
+  has no Playwright tests.
 ---
 
 # e2e-screenshots-report
 
-Drive the project's existing e2e UI flows through a real browser, capture labeled full-page screenshots at each step, and bundle them into one self-contained `index.html` (images embedded as base64). Output is PR-ready: one file, no external assets.
+Run the project's **existing** Playwright tests with `screenshot: 'on'`, then bundle the resulting PNGs into a single self-contained `index.html` (images base64-embedded). No parallel "capture script" to maintain — the report is literally the screenshots from the real test run, so it can't drift from what's tested.
 
 ## Invocation
 
 ```
-/e2e-screenshots-report [--out-dir DIR]
+/e2e-screenshots-report [--out PATH]
 ```
 
-- `--out-dir` (optional) — Where to write the report. Default `/tmp/e2e-report`.
+- `--out` (optional) — Path of the final HTML. Default `/tmp/e2e-report/index.html`.
 
-The base URL comes from the project's existing Playwright setup, not a CLI flag — see Step 4.
+## Step 1 — Locate the project's Playwright tests (or stop)
 
-## Step 1 — Locate the project's e2e tests (or stop)
+This skill works on **Playwright only** (JS/TS or Python). Detect which:
 
-Flows come **only** from existing e2e tests; this skill never invents them. Search for:
+- **JS / TS:** `playwright.config.{ts,js,mjs}` exists at the repo root (or a subdir). Tests typically under `e2e/`, `tests/`, `tests/e2e/`, `*.spec.ts`.
+- **Python:** `pytest-playwright` is a dependency (check `pyproject.toml` / `requirements*.txt`), or `conftest.py` imports `playwright`. Tests typically `test_*.py` under `tests/e2e/`.
 
-- `e2e/`, `tests/e2e/`, `tests/integration/`
-- `*.spec.ts`, `*.spec.js`, `*.cy.*`, `playwright.config.*`, `cypress.config.*`
-- `test_*e2e*.py` and pytest-playwright fixtures
+If neither is present (Cypress, Selenium, no e2e suite), stop and tell the user this skill is Playwright-only.
 
-If nothing matches, stop and tell the user there are no e2e tests to mirror. Do not write speculative flows.
+## Step 2 — Bring the app up
 
-## Step 2 — Pick the template by e2e language
+The existing tests already know what URL to hit (via `playwright.config` `use.baseURL` for JS, or a project fixture for Python). Bring the app up at that URL before running tests:
 
-The skill ships two parallel templates that produce the same output:
+1. Install the browser: `npx playwright install chromium` (JS) or `playwright install chromium` (Python).
+2. Build / start the app per its README, Makefile, or any project-local `run` skill.
+3. Bring up backing services (DB, seed data) the tests depend on.
+4. Confirm reachable: `curl -sf <baseURL>` (from the config).
 
-| E2E test language | Template     | Runtime                                                                |
-|-------------------|--------------|------------------------------------------------------------------------|
-| Python            | `capture.py` | `uv run capture.py` (PEP-723 inline deps) or `pip install playwright` |
-| JS / TS           | `capture.js` | `npm install playwright` then `node capture.js`                        |
+## Step 3 — Run the tests with screenshots enabled
 
-Copy the chosen template into the project (e.g. `scripts/e2e_capture.py` or `scripts/e2e-capture.js`). Do **not** edit the project's real e2e test files — the capture script lives alongside them.
+The test runner produces one PNG per test under `test-results/<test-id>/`.
 
-If the e2e suite mixes languages, pick the one that covers the flows being captured and tell the user which template was chosen.
+### JS / TS path — write a one-off override config
 
-## Step 3 — Mirror the e2e flows into the template
+Create `playwright.screenshots.config.ts` (or `.js` / `.mjs` to match the project's config extension) next to the existing `playwright.config`. It extends the real config and adds `screenshot: 'on'`:
 
-Read the selected e2e specs. For each flow, replicate its navigation and selectors into the template's `FLOWS` block, inserting `shot("label")` calls at meaningful checkpoints (after navigation, after each interaction worth showing, after async results render).
+```ts
+// playwright.screenshots.config.ts — temporary override, can be gitignored.
+import { defineConfig } from '@playwright/test';
+import base from './playwright.config';
 
-Write flow steps the same way the e2e tests do — **relative paths** in `page.goto("/login")`, `data-testid` attributes, role queries, text matchers identical to the specs. The template sets `baseURL` on the Playwright context, so relative URLs resolve against the project's base, exactly like in the real tests.
+export default defineConfig({
+  ...base,
+  use: { ...base.use, screenshot: 'on', trace: 'off', video: 'off' },
+  reporter: 'list',
+  outputDir: 'test-results',
+});
+```
 
-Leave the capture engine and report builder (everything outside `--- customize per project ---`) untouched.
+If the project's `playwright.config` doesn't have a default export, adjust the import (e.g. `import { default as base } from './playwright.config'`).
 
-## Step 4 — Point the template at the running app
-
-The base URL lives in the template's customize block (defaulting to `http://localhost:8000`) and is overridable via the `PLAYWRIGHT_BASE_URL` env var — no CLI flag.
-
-Find the URL the project already uses:
-
-- **JS / TS:** `playwright.config.{ts,js,mjs}` — look for `use: { baseURL: ... }`. Mirror that into the template's `BASE_URL` line (or export `PLAYWRIGHT_BASE_URL` to the same value).
-- **Python:** check `pytest.ini` / `pyproject.toml` for a `--base-url` default, or how the e2e tests construct URLs. Mirror into `BASE_URL`.
-
-Then bring the app up at that URL:
-
-1. Install the Playwright browser: `playwright install chromium` (Python) or `npx playwright install chromium` (Node).
-2. Build / start the project per its README, Makefile, or any project-local `run` skill.
-3. Bring up backing services (DB, seed data) the e2e specs depend on. Read the project's `Makefile`, `docker-compose.yml`, or the e2e setup script for the right invocations.
-4. Confirm the app responds at the base URL: `curl -sf "$PLAYWRIGHT_BASE_URL"`.
-
-## Step 5 — Run the capture and surface the report
+Run the tests:
 
 ```bash
-uv run scripts/e2e_capture.py --out-dir /tmp/e2e-report
-# or
-node scripts/e2e-capture.js --out-dir /tmp/e2e-report
+npx playwright test --config=playwright.screenshots.config.ts
 ```
 
-Override the base URL ad-hoc with `PLAYWRIGHT_BASE_URL=http://localhost:3001 uv run ...` if needed.
+### Python path — pytest-playwright flag
 
-The final line of stdout is the path to `index.html`. Tell the user where it is and offer to send the file (it's self-contained and attachable to a PR).
+No config override needed; pytest-playwright exposes a CLI flag:
 
-## Anti-drift — keep flows in sync with tests
+```bash
+pytest --screenshot on --output test-results <test-path-or-marker>
+```
 
-Capture flows must mirror the e2e specs. When UI elements gain new `data-testid`s, when flows reorder, or when steps are added, update the template's `FLOWS` block to match. The report is only useful while it reflects what's actually tested.
+(`--screenshot=on` writes `test-finished-1.png` per test under `test-results/<test-id>/`.)
 
-When in doubt, re-read the e2e spec end-to-end and diff its actions against `FLOWS` before running.
+### Either path
+
+The run **does not need every test to pass**. Failing tests still produce screenshots and still belong in the report.
+
+## Step 4 — Post-process into a single HTML
+
+The bundled `report.py` walks the test-results directory, base64-embeds every PNG, and writes one self-contained HTML:
+
+```bash
+uv run report.py --in test-results --out /tmp/e2e-report/index.html
+# or: python report.py --in test-results --out /tmp/e2e-report/index.html
+```
+
+The final stdout line is the report path. Tell the user where it is and offer to send the file — it's one HTML with no external assets, attachable to a PR.
+
+## Step 5 — Make the labels meaningful (recommended for richer reports)
+
+`screenshot: 'on'` captures **one PNG per test** (the final state). To get more granular shots without writing a parallel capture script, suggest the user add `await test.step("descriptive name", async () => { ... })` blocks inside their existing tests. Playwright records each step in the trace, and the screenshot file is named after the test so the report groups naturally. This is a normal Playwright pattern, not skill-specific.
 
 ## Common failure points
 
-- **App unreachable** — server not started, wrong port, `BASE_URL` doesn't match `playwright.config`. `curl -sf "$PLAYWRIGHT_BASE_URL"` first.
-- **Stale build** — frontend not rebuilt after recent edits. Re-run the project's build step.
-- **Backing services down** — DB not running, seed step failed. Check the e2e spec's setup.
-- **Playwright browser missing** — `playwright install chromium` (or `npx playwright install chromium`).
-- **Selectors drifted** — the e2e specs changed but `FLOWS` didn't. Re-mirror Step 3.
-- **Empty report** — `FLOWS` left as the placeholder. Replace it with the mirrored flows.
+- **Tests didn't run** — wrong working directory, browsers not installed (`playwright install chromium`), app unreachable at `baseURL`.
+- **No PNGs found** — JS path: override config not picked up (check `--config=` path and that `screenshot: 'on'` made it in). Python path: forgot `--screenshot on`.
+- **Stale `test-results/`** — old screenshots from a prior run mixed with the current one. Delete the dir before re-running.
+- **One screenshot per test feels thin** — see Step 5; add `test.step` blocks in the real tests.
+- **Empty report** — `--in` pointed at the wrong directory. Confirm the path: it should contain `*/test-finished-*.png`.
