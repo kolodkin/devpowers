@@ -11,7 +11,12 @@
  * match — otherwise the report drifts from what's actually tested.
  *
  * Usage:
- *   node capture.js [--base-url URL] [--out-dir DIR]
+ *   node capture.js [--out-dir DIR]
+ *
+ * The base URL is set in the customize block below (override via the
+ * PLAYWRIGHT_BASE_URL env var). Flow steps use relative paths
+ * (page.goto('/login')) — the URL is resolved against the context's baseURL,
+ * matching how Playwright tests are written.
  *
  * Prereqs:
  *   npm install playwright
@@ -23,12 +28,12 @@ const { chromium } = require('playwright');
 
 // --- customize per project ---------------------------------------------------
 
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 const OUT_DIR = '/tmp/e2e-report';
 
-async function flowLanding(page, shot, baseUrl) {
+async function flowLanding(page, shot) {
   // Placeholder flow — replace with steps mirrored from your e2e tests.
-  await page.goto(baseUrl);
+  await page.goto('/');
   await shot('landing page');
   // Example:
   // await page.click('[data-testid="login-button"]');
@@ -52,13 +57,17 @@ const esc = (s) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]),
   );
 
-async function capture(baseUrl, outDir) {
+async function capture(outDir) {
   fs.mkdirSync(outDir, { recursive: true });
   const shots = [];
   const browser = await chromium.launch();
   try {
     for (const [flowName, flowFn] of FLOWS) {
-      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+      const context = await browser.newContext({
+        baseURL: BASE_URL,
+        viewport: { width: 1440, height: 900 },
+      });
+      const page = await context.newPage();
       const shot = async (label) => {
         const idx = shots.length + 1;
         const file = path.join(
@@ -68,8 +77,8 @@ async function capture(baseUrl, outDir) {
         await page.screenshot({ path: file, fullPage: true });
         shots.push([`${flowName}: ${label}`, file]);
       };
-      await flowFn(page, shot, baseUrl);
-      await page.close();
+      await flowFn(page, shot);
+      await context.close();
     }
   } finally {
     await browser.close();
@@ -119,12 +128,11 @@ function buildReport(shots, outDir) {
 }
 
 function parseArgs(argv) {
-  const args = { baseUrl: BASE_URL, outDir: OUT_DIR };
+  const args = { outDir: OUT_DIR };
   for (let i = 2; i < argv.length; i++) {
-    if (argv[i] === '--base-url') args.baseUrl = argv[++i];
-    else if (argv[i] === '--out-dir') args.outDir = argv[++i];
+    if (argv[i] === '--out-dir') args.outDir = argv[++i];
     else if (argv[i] === '-h' || argv[i] === '--help') {
-      console.log('usage: node capture.js [--base-url URL] [--out-dir DIR]');
+      console.log('usage: node capture.js [--out-dir DIR]');
       process.exit(0);
     } else {
       console.error(`unknown arg: ${argv[i]}`);
@@ -135,14 +143,14 @@ function parseArgs(argv) {
 }
 
 (async () => {
-  const { baseUrl, outDir } = parseArgs(process.argv);
-  const shots = await capture(baseUrl, outDir);
+  const { outDir } = parseArgs(process.argv);
+  const shots = await capture(outDir);
   if (!shots.length) {
     console.error('no screenshots captured — check your FLOWS definition');
     process.exit(1);
   }
   const report = buildReport(shots, outDir);
-  console.log(`report: ${report}  (${shots.length} screenshots)`);
+  console.log(`report: ${report}  (${shots.length} screenshots, baseURL=${BASE_URL})`);
 })().catch((e) => {
   console.error(e);
   process.exit(1);

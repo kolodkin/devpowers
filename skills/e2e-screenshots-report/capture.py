@@ -15,8 +15,13 @@ change (new data-testids, new steps, reorderings), update FLOWS to match —
 otherwise the report drifts from what's actually tested.
 
 Usage:
-    uv run capture.py [--base-url URL] [--out-dir DIR]
-    python capture.py [--base-url URL] [--out-dir DIR]
+    uv run capture.py [--out-dir DIR]
+    python capture.py [--out-dir DIR]
+
+The base URL is set in the customize block below (override via the
+`PLAYWRIGHT_BASE_URL` env var). Flow steps use relative paths
+(`page.goto("/login")`) — the URL is resolved against the context's `base_url`,
+matching how Playwright tests are written.
 
 Prereq:
     playwright install chromium
@@ -25,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import os
 import re
 from html import escape
 from pathlib import Path
@@ -34,13 +40,13 @@ from playwright.sync_api import Page, sync_playwright
 
 # --- customize per project ---------------------------------------------------
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = os.environ.get("PLAYWRIGHT_BASE_URL", "http://localhost:8000")
 OUT_DIR = Path("/tmp/e2e-report")
 
 
-def flow_landing(page: Page, shot, base_url: str) -> None:
+def flow_landing(page: Page, shot) -> None:
     """Placeholder flow — replace with steps mirrored from your e2e tests."""
-    page.goto(base_url)
+    page.goto("/")
     shot("landing page")
     # Example:
     # page.click('[data-testid="login-button"]')
@@ -61,7 +67,7 @@ def slug(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-") or "shot"
 
 
-def capture(base_url: str, out_dir: Path) -> list[tuple[str, Path]]:
+def capture(out_dir: Path) -> list[tuple[str, Path]]:
     out_dir.mkdir(parents=True, exist_ok=True)
     shots: list[tuple[str, Path]] = []
 
@@ -69,7 +75,11 @@ def capture(base_url: str, out_dir: Path) -> list[tuple[str, Path]]:
         browser = pw.chromium.launch()
         try:
             for flow_name, flow_fn in FLOWS:
-                page = browser.new_page(viewport={"width": 1440, "height": 900})
+                context = browser.new_context(
+                    base_url=BASE_URL,
+                    viewport={"width": 1440, "height": 900},
+                )
+                page = context.new_page()
 
                 def shot(label: str, _flow=flow_name, _page=page) -> None:
                     idx = len(shots) + 1
@@ -77,8 +87,8 @@ def capture(base_url: str, out_dir: Path) -> list[tuple[str, Path]]:
                     _page.screenshot(path=str(path), full_page=True)
                     shots.append((f"{_flow}: {label}", path))
 
-                flow_fn(page, shot, base_url)
-                page.close()
+                flow_fn(page, shot)
+                context.close()
         finally:
             browser.close()
 
@@ -128,15 +138,14 @@ def build_report(shots: list[tuple[str, Path]], out_dir: Path) -> Path:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="capture labeled e2e screenshots into a self-contained HTML report")
-    ap.add_argument("--base-url", default=BASE_URL, help=f"app base URL (default {BASE_URL})")
     ap.add_argument("--out-dir", type=Path, default=OUT_DIR, help=f"output directory (default {OUT_DIR})")
     args = ap.parse_args()
 
-    shots = capture(args.base_url, args.out_dir)
+    shots = capture(args.out_dir)
     if not shots:
         raise SystemExit("no screenshots captured — check your FLOWS definition")
     report = build_report(shots, args.out_dir)
-    print(f"report: {report}  ({len(shots)} screenshots)")
+    print(f"report: {report}  ({len(shots)} screenshots, base_url={BASE_URL})")
 
 
 if __name__ == "__main__":
