@@ -27,7 +27,7 @@ A Claude Code plugin bundling developer productivity skills.
   - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the Monitor poll)
   - Token: classic PAT `repo`, fine-grained `Pull requests: read/write`, `Actions: read`
 - **shortify** — Review and shorten markdown docs in subdirectories — cut wordiness, redundancy, and code duplication.
-- **e2e-screenshots-report** — Run the project's existing Playwright tests with `screenshot: 'on'`, then post-process the `test-results/` PNGs into a single self-contained `index.html` (base64-embedded). PR-ready visual record; no parallel capture script to maintain.
+- **e2e-screenshots-report** — Run the project's existing Playwright tests, collect the screenshots they write (inline `page.screenshot()` calls by default; `screenshot: 'on'` per test with `--screenshot-on`), and post-process them into a single self-contained `index.html` (base64-embedded). PR-ready visual record; no parallel capture script to maintain.
   - CLI: `npx`/`node` or `pytest`/`uv`, plus `playwright` browsers (`playwright install chromium`)
 - **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
   - CLI: `git`
