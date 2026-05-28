@@ -32,8 +32,13 @@ backing services, and selectors.
 ```
 skills/e2e-screenshots-report/
   SKILL.md        # runbook
-  capture.py      # bundled fallback template (Python + Playwright)
+  capture.py      # bundled template for Python projects (Playwright sync API)
+  capture.js      # bundled template for JS/TS projects (Playwright Node)
 ```
+
+Both templates do the same thing — drive the flows, take labeled screenshots,
+emit a self-contained `index.html`. Claude picks one based on the language of
+the project's existing e2e tests.
 
 Frontmatter `name: e2e-screenshots-report`, with a description that triggers on
 phrases like "e2e screenshot report", "screenshot report", "capture UI
@@ -55,27 +60,31 @@ markers: `e2e/`, `tests/e2e/`, `*.spec.ts` / `*.spec.js`, `*.cy.*`,
   navigation order, the selectors / `data-testid`s used, and any required
   setup (seed data, auth, fixtures). These become the capture steps.
 
-### 2. Runner — detect, then fall back
+### 2. Template selection — by e2e test language
 
-- **Reuse path:** If the project already has a Playwright runner (JS/TS via
-  `playwright.config.*`, or Python via the `playwright` package), Claude adds a
-  **separate** capture spec/script that reuses the project's config and
-  selectors. It never edits the real test files.
-- **Fallback path:** If there is no reusable Playwright setup (e.g. the e2e
-  suite is Cypress, or there's no browser runner wired for screenshotting),
-  Claude copies the bundled `capture.py` template into a working location and
-  fills in the per-project parts. Run via `uv run capture.py ...` (or a venv +
-  `pip install playwright`), preceded by `playwright install chromium`.
+Two parallel templates are bundled with the skill; Claude picks one:
 
-In both paths the capture program reuses the *selectors and navigation* learned
-from the e2e specs — the report mirrors the tests.
+- **Python e2e tests** (`test_*.py` using `playwright`, pytest-playwright,
+  etc.) → copy `capture.py` into a working location, fill in the per-project
+  parts. Run via `uv run capture.py ...` (or a venv + `pip install
+  playwright`), preceded by `playwright install chromium`.
+- **JS/TS e2e tests** (`*.spec.ts` / `*.spec.js`, `playwright.config.*`,
+  Cypress specs) → copy `capture.js` into a working location, fill in the
+  per-project parts. Run via `node capture.js ...` (after `npm install
+  playwright` or `npx --yes playwright`), preceded by `npx playwright install
+  chromium`.
 
-**Report assembly is shared.** The HTML report builder in `capture.py` can run
-standalone over a directory of numbered PNGs plus a small label manifest
-(`capture.py --report-only --out-dir <dir>`). So the JS/TS reuse path only has
-to produce the labeled PNGs; it then calls the bundled report builder to emit
-the final `index.html`. This keeps a single, generic report implementation
-regardless of which runner captured the screenshots.
+If the e2e suite mixes languages, Claude picks the one that covers the flows
+being captured and tells the user which template was chosen.
+
+In both cases the capture program reuses the *selectors and navigation* learned
+from the e2e specs — the report mirrors the tests. Claude never edits the
+project's real e2e test files; the capture script lives alongside them as a
+separate file.
+
+Both templates implement the same self-contained HTML report builder, so
+output is identical regardless of which one ran. The duplication is small
+(~50 lines per template) and avoids any cross-language coupling at run time.
 
 ### 3. Preconditions (generalized)
 
@@ -102,10 +111,11 @@ A self-contained `index.html` written to a temp dir, default
   so the single file is portable (attachable to a PR, openable anywhere).
 - A header noting the source flows and capture timestamp.
 
-The HTML-generation code in `capture.py` is generic and reused verbatim across
-projects. Only the configuration block (base URL, output dir) and the flow
-definitions (ordered steps + screenshot labels) are marked
-`# --- customize per project ---`.
+The HTML-generation code in both templates is generic and reused verbatim
+across projects. Only the configuration block (base URL, output dir) and the
+flow definitions (ordered steps + screenshot labels) are marked
+`# --- customize per project ---` (Python) / `// --- customize per project ---`
+(JS).
 
 ### 5. Maintenance / anti-drift note
 
@@ -124,34 +134,35 @@ Documented in SKILL.md for triage:
 - Playwright browser not installed (`playwright install chromium`).
 - Selectors in the e2e specs changed and the capture steps drifted.
 
-## Template (`capture.py`) shape
+## Template shape (both `capture.py` and `capture.js`)
 
-A standalone Python + Playwright (sync API) script:
+Both templates have the same four-part structure so they're easy to keep in
+sync:
 
 - **Config block** (customize): `BASE_URL`, `OUT_DIR`.
 - **Flow definitions** (customize): a small structure of named flows, each a
   list of `(action, label)` steps where a labeled step triggers a full-page
   screenshot.
-- **Capture engine** (generic): launches headless Chromium, runs each flow,
-  saves numbered PNGs.
-- **Report builder** (generic): reads numbered PNGs + a `labels.json` manifest
-  from the out-dir, base64-embeds the images, and emits the dark-themed
-  `index.html` with sidebar nav. Exposed as a `--report-only` mode so it can
-  assemble a report from PNGs produced by an external (JS/TS) runner.
-- Invoked via `uv run capture.py --base-url ... --out-dir ...` (full
-  capture+report) or `uv run capture.py --report-only --out-dir ...`
-  (report from existing PNGs), with sensible defaults so it also runs under a
-  plain `python capture.py`.
+- **Capture engine** (generic): launches headless Chromium via Playwright,
+  runs each flow, saves numbered PNGs.
+- **Report builder** (generic): reads the captured PNGs, base64-embeds them,
+  and emits the dark-themed `index.html` with sidebar nav.
 
-The bundled template ships with one tiny placeholder flow (a single page load +
-screenshot) clearly marked for replacement, so it runs out-of-the-box and
+Invocation:
+
+- Python: `uv run capture.py --base-url ... --out-dir ...` (also works under
+  plain `python capture.py`).
+- JS: `node capture.js --base-url ... --out-dir ...`.
+
+Both ship with one tiny placeholder flow (a single page load + screenshot)
+clearly marked for replacement, so each template runs out-of-the-box and
 demonstrates the structure without pretending to know any real app's flows.
 
 ## Conventions (per repo CLAUDE.md)
 
-- Reference `capture.py` from SKILL.md with a plain relative path
-  (`capture.py`), not `${CLAUDE_PLUGIN_ROOT}`, so it resolves for both plugin
-  and project-level installs.
+- Reference `capture.py` / `capture.js` from SKILL.md with plain relative paths
+  (not `${CLAUDE_PLUGIN_ROOT}`), so they resolve for both plugin and
+  project-level installs.
 - Keep the skill self-contained under `skills/e2e-screenshots-report/`.
 
 ## Open questions
