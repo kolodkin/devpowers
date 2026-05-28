@@ -44,11 +44,20 @@ Failing tests still produce PNGs and still belong in the report.
 
 ## 2. Run the capture script
 
+Pick the runtime that matches the project — both scripts produce the same self-contained HTML:
+
+**JS / TS projects** (Node already available):
+
 ```bash
-uv run report.py --in test-results --out /tmp/e2e-report/index.html
+node report.js --in test-results --out /tmp/e2e-report/index.html
 ```
 
-(or `python report.py --in test-results --out /tmp/e2e-report/index.html` if `uv` isn't available).
+**Python projects:**
+
+```bash
+uv run report.py --in test-results --out /tmp/e2e-report/index.html
+# or: python report.py --in test-results --out /tmp/e2e-report/index.html
+```
 
 ## 3. Deliver the report
 
