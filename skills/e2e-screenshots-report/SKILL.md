@@ -1,12 +1,10 @@
 ---
 name: e2e-screenshots-report
 description: >
-  Run the project's existing Playwright tests, collect the screenshots they
-  write (inline `page.screenshot()` calls by default; `screenshot: 'on'` per
-  test if invoked with `--screenshot-on`), and bundle them into a single
-  self-contained `index.html`. Use when the user asks for an e2e screenshot
-  report, a visual record of UI flows, a PR-ready visual of the running app,
-  or invokes `/e2e-screenshots-report`. Playwright-only.
+  Run the project's existing Playwright tests and bundle their screenshots into
+  a single self-contained `index.html`. Use when the user asks for an e2e
+  screenshot report, a visual record of UI flows, a PR-ready visual of the
+  running app, or invokes `/e2e-screenshots-report`. Playwright-only.
 ---
 
 # e2e-screenshots-report
@@ -19,7 +17,7 @@ Three steps.
 /e2e-screenshots-report [--in DIR] [--out PATH] [--screenshot-on]
 ```
 
-- `--in` — directory the project's tests write screenshots to. Default: detect it (`test-results/`, `screenshots/`, or whatever the tests' `page.screenshot({ path: ... })` calls use).
+- `--in` — directory the project's tests write screenshots to. Default `test-results/` (Playwright JS and pytest-playwright convention). Pass an explicit path if the project writes elsewhere.
 - `--out` — output HTML path. Default `/tmp/e2e-report/index.html`.
 - `--screenshot-on` — additionally force Playwright to save a final-state PNG per test (uses the override config / `--screenshot on` flag). Off by default.
 
@@ -34,7 +32,7 @@ npx playwright test     # JS
 pytest                   # Python
 ```
 
-Identify where those screenshots land. Grep test files for `page.screenshot(` (JS/TS) or `page.screenshot(` (Python) to find the path argument. Common destinations: `test-results/`, `screenshots/`, `playwright-report/`.
+Screenshots land in `test-results/` by default. If the project writes elsewhere, pass `--in <dir>`.
 
 **With `--screenshot-on`** — additionally turn on Playwright's per-test final-state PNG:
 
@@ -71,15 +69,17 @@ Pick the runtime that matches the project — both scripts produce the same self
 **JS / TS projects** (Node already available):
 
 ```bash
-node report.js --in <screenshots-dir> --out /tmp/e2e-report/index.html
+node report.js --out /tmp/e2e-report/index.html
 ```
 
 **Python projects:**
 
 ```bash
-uv run report.py --in <screenshots-dir> --out /tmp/e2e-report/index.html
-# or: python report.py --in <screenshots-dir> --out /tmp/e2e-report/index.html
+uv run report.py --out /tmp/e2e-report/index.html
+# or: python report.py --out /tmp/e2e-report/index.html
 ```
+
+Both default `--in` to `test-results/`. Pass `--in <dir>` if the project writes screenshots somewhere else.
 
 ## 3. Deliver the report
 

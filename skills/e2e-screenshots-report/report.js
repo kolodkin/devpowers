@@ -10,7 +10,7 @@
  * Zero deps — uses only Node stdlib.
  *
  * Usage:
- *   node report.js --in test-results [--out /tmp/e2e-report/index.html]
+ *   node report.js [--in test-results] [--out /tmp/e2e-report/index.html]
  */
 const fs = require('fs');
 const path = require('path');
@@ -102,21 +102,17 @@ function buildReport(shots, outPath) {
 }
 
 function parseArgs(argv) {
-  const args = { inDir: null, outPath: '/tmp/e2e-report/index.html' };
+  const args = { inDir: 'test-results', outPath: '/tmp/e2e-report/index.html' };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--in') args.inDir = argv[++i];
     else if (argv[i] === '--out') args.outPath = argv[++i];
     else if (argv[i] === '-h' || argv[i] === '--help') {
-      console.log('usage: node report.js --in test-results [--out /tmp/e2e-report/index.html]');
+      console.log('usage: node report.js [--in test-results] [--out /tmp/e2e-report/index.html]');
       process.exit(0);
     } else {
       console.error(`unknown arg: ${argv[i]}`);
       process.exit(2);
     }
-  }
-  if (!args.inDir) {
-    console.error('missing --in <dir>');
-    process.exit(2);
   }
   return args;
 }

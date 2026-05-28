@@ -13,8 +13,8 @@ groups them by test, and emits a single `index.html` with the images
 base64-embedded — no external assets.
 
 Usage:
-    uv run report.py --in test-results [--out /tmp/e2e-report/index.html]
-    python report.py --in test-results [--out /tmp/e2e-report/index.html]
+    uv run report.py [--in test-results] [--out /tmp/e2e-report/index.html]
+    python report.py [--in test-results] [--out /tmp/e2e-report/index.html]
 """
 from __future__ import annotations
 
@@ -106,8 +106,8 @@ def build_report(shots: list[tuple[str, Path]], out_path: Path) -> Path:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="post-process Playwright screenshots into a self-contained HTML report")
-    ap.add_argument("--in", dest="in_dir", required=True, type=Path,
-                    help="Playwright test-results directory")
+    ap.add_argument("--in", dest="in_dir", type=Path, default=Path("test-results"),
+                    help="Playwright test-results directory (default test-results)")
     ap.add_argument("--out", type=Path, default=Path("/tmp/e2e-report/index.html"),
                     help="output HTML path (default /tmp/e2e-report/index.html)")
     args = ap.parse_args()
