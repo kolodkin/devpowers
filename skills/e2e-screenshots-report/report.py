@@ -102,7 +102,7 @@ def build_report(shots: list[tuple[str, Path]], out_path: Path) -> Path:
   :root {{ color-scheme: dark; }}
   body {{ margin: 0; background: #0d1117; color: #c9d1d9;
          font: 14px/1.5 system-ui, -apple-system, sans-serif; }}
-  .wrap {{ max-width: 1100px; margin: 0 auto; padding: 24px; }}
+  .wrap {{ padding: 24px; }}
   nav.toc {{ margin: 0 0 32px; padding: 16px;
              border: 1px solid #30363d; border-radius: 6px; }}
   nav.toc h1 {{ margin: 0 0 12px; font-size: 16px; color: #f0f6fc; }}
@@ -111,8 +111,8 @@ def build_report(shots: list[tuple[str, Path]], out_path: Path) -> Path:
   nav.toc a:hover {{ text-decoration: underline; }}
   section {{ margin-bottom: 40px; }}
   h2 {{ margin: 0 0 12px; font-size: 16px; color: #f0f6fc; }}
-  img {{ max-width: 100%; border: 1px solid #30363d; border-radius: 6px;
-         display: block; }}
+  img {{ width: 100%; height: auto; object-fit: contain;
+         border: 1px solid #30363d; border-radius: 6px; display: block; }}
 </style></head><body>
 <div class="wrap">
 <nav class="toc"><h1>Contents</h1>{"".join(nav)}</nav>
