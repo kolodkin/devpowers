@@ -100,21 +100,19 @@ def build_report(shots: list[tuple[str, Path]], out_path: Path) -> Path:
 <html><head><meta charset="utf-8"><title>e2e screenshot report</title>
 <style>
   :root {{ color-scheme: dark; }}
-  body {{ margin: 0; background: #0d1117; color: #c9d1d9;
-         font: 14px/1.5 system-ui, -apple-system, sans-serif;
-         display: grid; grid-template-columns: 280px 1fr; }}
-  nav {{ position: sticky; top: 0; height: 100vh; overflow: auto;
-         padding: 16px; border-right: 1px solid #30363d; }}
-  nav a {{ display: block; color: #58a6ff; text-decoration: none;
-          padding: 4px 0; font-size: 13px; }}
-  nav a:hover {{ text-decoration: underline; }}
-  main {{ padding: 24px; max-width: 1400px; }}
+  body {{ margin: 0; padding: 24px; background: #0d1117; color: #c9d1d9;
+         font: 14px/1.5 system-ui, -apple-system, sans-serif; }}
+  nav.toc {{ margin: 0 0 32px; padding: 16px;
+             border: 1px solid #30363d; border-radius: 6px; }}
+  nav.toc a {{ display: block; color: #58a6ff; text-decoration: none;
+               padding: 4px 0; font-size: 13px; }}
+  nav.toc a:hover {{ text-decoration: underline; }}
+  nav.toc h1, h2 {{ margin: 0 0 12px; font-size: 16px; color: #f0f6fc; }}
   section {{ margin-bottom: 40px; }}
-  h2 {{ margin: 0 0 12px; font-size: 16px; color: #f0f6fc; }}
-  img {{ max-width: 100%; border: 1px solid #30363d; border-radius: 6px;
-         display: block; }}
+  img {{ width: 100%; height: auto;
+         border: 1px solid #30363d; border-radius: 6px; display: block; }}
 </style></head><body>
-<nav>{"".join(nav)}</nav>
+<nav class="toc"><h1>Contents</h1>{"".join(nav)}</nav>
 <main>{"".join(sections)}</main>
 </body></html>"""
 
