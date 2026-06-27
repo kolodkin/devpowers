@@ -1,20 +1,20 @@
 ---
-name: e2e-screenshots-report
+name: screenshots
 description: >
   Run the project's existing Playwright tests and bundle their screenshots into
   a single self-contained `index.html`. Use when the user asks for an e2e
   screenshot report, a visual record of UI flows, a PR-ready visual of the
-  running app, or invokes `/e2e-screenshots-report`. Playwright-only.
+  running app, or invokes `/screenshots`. Playwright-only.
 ---
 
-# e2e-screenshots-report
+# screenshots
 
 Three steps.
 
 ## Invocation
 
 ```
-/e2e-screenshots-report [--in DIR] [--out PATH] [--screenshot-on]
+/screenshots [--in DIR] [--out PATH] [--screenshot-on]
 ```
 
 - `--in` — directory the project's tests write screenshots to. Default `test-results/` (Playwright JS and pytest-playwright convention). Pass an explicit path if the project writes elsewhere.

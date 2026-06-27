@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * e2e-screenshots-report — post-process Playwright screenshots into a
+ * screenshots — post-process Playwright screenshots into a
  * self-contained HTML report.
  *
  * Walks a Playwright test-results directory, collects every screenshot
