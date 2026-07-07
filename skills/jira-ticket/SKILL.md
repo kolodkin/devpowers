@@ -58,7 +58,7 @@ The Jira issue key pattern in this skill is `${JIRA_PROJECT_KEY}-\d+` (e.g., if 
 
 ### Create Mode Arguments
 
-`/jira-ticket [issue_type][, sprint][, priority][, epic <keyword>][, label <name>][, snippets]...`
+`/jira-ticket [issue_type][, sprint][, priority][, epic <keyword>][, label <name>][, snippets][, queries]...`
 
 - **Issue type**: `Bug`, `Story`, `Epic`, `Subtask`. Case-insensitive. If omitted, infer from context. **Always prefer Story over Task.** If ambiguous, ask.
 - **Sprint placement**:
@@ -69,6 +69,7 @@ The Jira issue key pattern in this skill is `${JIRA_PROJECT_KEY}-\d+` (e.g., if 
 - **Epic**: If an argument starts with `epic ` followed by a keyword (e.g., `epic <CustomerName>`, `epic Onboarding`), search for a matching epic to link. The keyword can be a customer name, feature name, or any search term. Can also be inferred from conversation context.
 - **Label**: If an argument starts with `label ` followed by a name (e.g., `label production-issue`, `label tech-debt`), add that label to the created ticket. May be repeated to add multiple labels.
 - **Snippets**: The `snippets` flag includes full code snippets in the Code References section. Without it (the default), Code References contains file references only (`path/to/file.py:42`) — no code blocks. Recognized in every mode.
+- **Queries**: The `queries` flag includes a Relevant Queries section with SQL from the conversation. Without it (the default), the section is omitted entirely. Recognized in every mode.
 
 Examples:
 - `/jira-ticket bug` → Bug, backlog, no epic
@@ -79,14 +80,15 @@ Examples:
 - `/jira-ticket bug, next` → Bug, next future sprint, no epic
 - `/jira-ticket bug, label production-issue` → Bug, backlog, `production-issue` label
 - `/jira-ticket bug, snippets` → Bug, backlog, full code snippets in the description
+- `/jira-ticket bug, queries` → Bug, backlog, Relevant Queries section included
 - `/jira-ticket bug, current, label production-issue, epic Payments` → Bug, current sprint, `production-issue` label, linked to Payments epic
 - `/jira-ticket` → infer type from context, backlog, no epic
 
 ### Comment Mode Arguments
 
-`/jira-ticket <ISSUE_KEY>[, snippets]`
+`/jira-ticket <ISSUE_KEY>[, snippets][, queries]`
 
-The issue key is the target ticket. All other arguments except `snippets` are ignored — no type, sprint, or priority needed.
+The issue key is the target ticket. All other arguments except `snippets` and `queries` are ignored — no type, sprint, or priority needed.
 
 Examples:
 - `/jira-ticket PROJ-1234` → add comment to PROJ-1234
@@ -94,7 +96,7 @@ Examples:
 
 ### Update Description Mode Arguments
 
-`/jira-ticket <ISSUE_KEY>, description[, snippets]`
+`/jira-ticket <ISSUE_KEY>, description[, snippets][, queries]`
 
 The issue key is the target ticket. The `description` keyword triggers updating the ticket's description instead of adding a comment.
 
@@ -109,7 +111,7 @@ Before creating or commenting, review the current conversation and gather:
 
 - **Bottom line**: The key takeaway — what the reader needs to know first
 - **Code references**: Up to 3 relevant files as `path:line` references naming the relevant method / class / class method. Only if the `snippets` flag was passed, include the code itself (max 15 lines each, `...` to show only relevant parts)
-- **SQL queries**: If relevant SQL was discussed or written
+- **SQL queries**: Only if the `queries` flag was passed — gather relevant SQL discussed or written during the session
 
 Then use the appropriate template based on the issue type.
 
@@ -133,7 +135,7 @@ For Bugs — focused on what's broken, why, and how to fix it.
 <Up to 3 file references, or code snippets if `snippets` was passed — see formatting rules below>
 
 ## Relevant Queries
-<SQL queries used in investigation or relevant to the fix>
+<Only if `queries` was passed — SQL used in investigation or relevant to the fix>
 ```
 
 ### Story / Feature Template
@@ -147,13 +149,14 @@ For Stories, Epics — focused on what to build and how.
 <Up to 3 references to relevant existing code, or snippets if `snippets` was passed — see formatting rules below>
 
 ## Relevant Queries
-<SQL queries relevant to the feature>
+<Only if `queries` was passed — SQL relevant to the feature>
 ```
 
 ### Section Rules
 
 - **Bottom line**: Always first. Bold one-liner.
-- **Code References & Relevant Queries**: Optional but **actively look for them** in the conversation. If code was discussed, files were read, or queries were written during the session, include them. They add significant value for the developer picking up the ticket.
+- **Code References**: Optional but **actively look for them** in the conversation. If code was discussed or files were read during the session, include them. They add significant value for the developer picking up the ticket.
+- **Relevant Queries**: Only when the `queries` flag was passed — omit the section otherwise, even if SQL appeared in the conversation.
 - All other sections: Only include if there's content — skip empty sections entirely.
 
 ### Code Reference Formatting
