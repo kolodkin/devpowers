@@ -58,7 +58,7 @@ The Jira issue key pattern in this skill is `${JIRA_PROJECT_KEY}-\d+` (e.g., if 
 
 ### Create Mode Arguments
 
-`/jira-ticket [issue_type][, sprint][, priority][, epic <keyword>][, label <name>]...`
+`/jira-ticket [issue_type][, sprint][, priority][, epic <keyword>][, label <name>][, snippets]...`
 
 - **Issue type**: `Bug`, `Story`, `Epic`, `Subtask`. Case-insensitive. If omitted, infer from context. **Always prefer Story over Task.** If ambiguous, ask.
 - **Sprint placement**:
@@ -68,6 +68,7 @@ The Jira issue key pattern in this skill is `${JIRA_PROJECT_KEY}-\d+` (e.g., if 
 - **Priority**: `Critical`, `High`, `Medium`, `Low`, `Lowest`. Only set if explicitly provided. Otherwise, let Jira default apply.
 - **Epic**: If an argument starts with `epic ` followed by a keyword (e.g., `epic <CustomerName>`, `epic Onboarding`), search for a matching epic to link. The keyword can be a customer name, feature name, or any search term. Can also be inferred from conversation context.
 - **Label**: If an argument starts with `label ` followed by a name (e.g., `label production-issue`, `label tech-debt`), add that label to the created ticket. May be repeated to add multiple labels.
+- **Snippets**: The `snippets` flag includes full code snippets in the Code References section. Without it (the default), Code References contains file references only (`path/to/file.py:42`) — no code blocks. Recognized in every mode.
 
 Examples:
 - `/jira-ticket bug` → Bug, backlog, no epic
@@ -77,21 +78,23 @@ Examples:
 - `/jira-ticket bug, current, critical, epic Auth` → Bug, current sprint, Critical, linked to Auth epic
 - `/jira-ticket bug, next` → Bug, next future sprint, no epic
 - `/jira-ticket bug, label production-issue` → Bug, backlog, `production-issue` label
+- `/jira-ticket bug, snippets` → Bug, backlog, full code snippets in the description
 - `/jira-ticket bug, current, label production-issue, epic Payments` → Bug, current sprint, `production-issue` label, linked to Payments epic
 - `/jira-ticket` → infer type from context, backlog, no epic
 
 ### Comment Mode Arguments
 
-`/jira-ticket <ISSUE_KEY>`
+`/jira-ticket <ISSUE_KEY>[, snippets]`
 
-The issue key is the target ticket. All other arguments are ignored — no type, sprint, or priority needed.
+The issue key is the target ticket. All other arguments except `snippets` are ignored — no type, sprint, or priority needed.
 
 Examples:
 - `/jira-ticket PROJ-1234` → add comment to PROJ-1234
+- `/jira-ticket PROJ-1234, snippets` → add comment with full code snippets
 
 ### Update Description Mode Arguments
 
-`/jira-ticket <ISSUE_KEY>, description`
+`/jira-ticket <ISSUE_KEY>, description[, snippets]`
 
 The issue key is the target ticket. The `description` keyword triggers updating the ticket's description instead of adding a comment.
 
@@ -105,7 +108,7 @@ Examples:
 Before creating or commenting, review the current conversation and gather:
 
 - **Bottom line**: The key takeaway — what the reader needs to know first
-- **Code references**: Up to 3 snippets (max 15 lines each). Use `...` to show only relevant parts
+- **Code references**: Up to 3 relevant files as `path:line` references. Only if the `snippets` flag was passed, include the code itself (max 15 lines each, `...` to show only relevant parts)
 - **SQL queries**: If relevant SQL was discussed or written
 
 Then use the appropriate template based on the issue type.
@@ -127,7 +130,7 @@ For Bugs — focused on what's broken, why, and how to fix it.
 <Recommended solution path. Bold the owning module/component. Include the data flow or join path if relevant.>
 
 ## Code References
-<Up to 3 code snippets with file paths — see formatting rules below>
+<Up to 3 file references, or code snippets if `snippets` was passed — see formatting rules below>
 
 ## Relevant Queries
 <SQL queries used in investigation or relevant to the fix>
@@ -141,7 +144,7 @@ For Stories, Epics — focused on what to build and how.
 **<Bottom line — one sentence summarizing what we're building and why>**
 
 ## Code References
-<Up to 3 code snippets showing relevant existing code — see formatting rules below>
+<Up to 3 references to relevant existing code, or snippets if `snippets` was passed — see formatting rules below>
 
 ## Relevant Queries
 <SQL queries relevant to the feature>
@@ -153,7 +156,15 @@ For Stories, Epics — focused on what to build and how.
 - **Code References & Relevant Queries**: Optional but **actively look for them** in the conversation. If code was discussed, files were read, or queries were written during the session, include them. They add significant value for the developer picking up the ticket.
 - All other sections: Only include if there's content — skip empty sections entirely.
 
-### Code Snippet Formatting
+### Code Reference Formatting
+
+Default (no `snippets` flag) — file references only, one line each:
+
+```
+**`path/to/file.py:42`** — why this location is relevant
+```
+
+With the `snippets` flag — reference plus the code itself:
 
 ````
 **`path/to/file.py:42`**
@@ -166,11 +177,9 @@ def process_item(item_id):
 ````
 
 Rules:
-- Maximum 3 snippets
-- Maximum 15 lines each
-- Use `...` to replace irrelevant lines in the middle
+- Maximum 3 references either way
 - Include file path and line number as a bold header
-- Use the appropriate language tag for syntax highlighting
+- Snippets (flag only): maximum 15 lines each, use `...` to replace irrelevant lines in the middle, use the appropriate language tag for syntax highlighting
 
 ---
 
