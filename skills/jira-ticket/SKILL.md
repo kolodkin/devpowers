@@ -108,7 +108,7 @@ Examples:
 Before creating or commenting, review the current conversation and gather:
 
 - **Bottom line**: The key takeaway — what the reader needs to know first
-- **Code references**: Up to 3 relevant files as `path:line` references. Only if the `snippets` flag was passed, include the code itself (max 15 lines each, `...` to show only relevant parts)
+- **Code references**: Up to 3 relevant files as `path:line` references naming the relevant method / class / class method. Only if the `snippets` flag was passed, include the code itself (max 15 lines each, `...` to show only relevant parts)
 - **SQL queries**: If relevant SQL was discussed or written
 
 Then use the appropriate template based on the issue type.
@@ -158,10 +158,10 @@ For Stories, Epics — focused on what to build and how.
 
 ### Code Reference Formatting
 
-Default (no `snippets` flag) — file references only, one line each:
+Default (no `snippets` flag) — file references only, one line each, naming the relevant method / class / class method:
 
 ```
-**`path/to/file.py:42`** — why this location is relevant
+**`path/to/file.py:42`** — `OrderProcessor.process_item()`
 ```
 
 With the `snippets` flag — reference plus the code itself:
