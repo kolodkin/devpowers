@@ -11,7 +11,11 @@
  * to /tmp/.e2e-report-tools so the user's project node_modules stays clean.
  *
  * Usage:
- *   node report.js [--in test-results] [--out /tmp/e2e-report/index.html]
+ *   node report.js [--in test-results] [--out /tmp/e2e-report/index.html] [--filter REGEX]
+ *
+ * --filter keeps only screenshots whose path relative to --in matches the
+ * (case-insensitive) regex — e.g. --filter 'login|signup' to report just the
+ * tests touched in the current session.
  */
 const fs = require('fs');
 const path = require('path');
@@ -65,10 +69,11 @@ function esc(s) {
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function collect(inDir) {
+function collect(inDir, filter) {
   const shots = [];
   for (const img of walk(inDir).sort()) {
     const rel = path.relative(inDir, img);
+    if (filter && !filter.test(rel)) continue;
     const parts = rel.split(path.sep);
     const stem = path.basename(img, path.extname(img));
     if (parts.length >= 2) {
@@ -137,12 +142,13 @@ async function buildReport(shots, outPath) {
 }
 
 function parseArgs(argv) {
-  const args = { inDir: 'test-results', outPath: '/tmp/e2e-report/index.html' };
+  const args = { inDir: 'test-results', outPath: '/tmp/e2e-report/index.html', filter: null };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--in') args.inDir = argv[++i];
     else if (argv[i] === '--out') args.outPath = argv[++i];
+    else if (argv[i] === '--filter') args.filter = new RegExp(argv[++i], 'i');
     else if (argv[i] === '-h' || argv[i] === '--help') {
-      console.log('usage: node report.js [--in test-results] [--out /tmp/e2e-report/index.html]');
+      console.log('usage: node report.js [--in test-results] [--out /tmp/e2e-report/index.html] [--filter REGEX]');
       process.exit(0);
     } else {
       console.error(`unknown arg: ${argv[i]}`);
@@ -153,15 +159,17 @@ function parseArgs(argv) {
 }
 
 (async () => {
-  const { inDir, outPath } = parseArgs(process.argv);
+  const { inDir, outPath, filter } = parseArgs(process.argv);
   if (!fs.existsSync(inDir) || !fs.statSync(inDir).isDirectory()) {
     console.error(`input directory not found: ${inDir}`);
     process.exit(1);
   }
-  const shots = collect(inDir);
+  const shots = collect(inDir, filter);
   if (!shots.length) {
     console.error(
-      `no screenshots found under ${inDir} — check the tests produced PNGs/JPEGs, or pass --in <dir>`,
+      filter
+        ? `no screenshots under ${inDir} match --filter ${filter.source} — loosen the regex or drop --filter`
+        : `no screenshots found under ${inDir} — check the tests produced PNGs/JPEGs, or pass --in <dir>`,
     );
     process.exit(1);
   }
