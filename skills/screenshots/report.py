@@ -12,8 +12,12 @@ Walks a Playwright test-results directory, collects every screenshot
 (3-10x smaller than PNG embeds), and emits one base64-embedded index.html.
 
 Usage:
-    uv run report.py [--in test-results] [--out /tmp/e2e-report/index.html]
-    python report.py [--in test-results] [--out /tmp/e2e-report/index.html]
+    uv run report.py [--in test-results] [--out /tmp/e2e-report/index.html] [--filter REGEX]
+    python report.py [--in test-results] [--out /tmp/e2e-report/index.html] [--filter REGEX]
+
+--filter keeps only screenshots whose path relative to --in matches the
+(case-insensitive) regex — e.g. --filter 'login|signup' to report just the
+tests touched in the current session.
 """
 from __future__ import annotations
 
@@ -30,7 +34,7 @@ JPEG_QUALITY = 80
 IMG_EXTS = {".png", ".jpg", ".jpeg"}
 
 
-def collect(in_dir: Path) -> list[tuple[str, Path]]:
+def collect(in_dir: Path, filter_re: re.Pattern | None = None) -> list[tuple[str, Path]]:
     """Return [(label, img_path)] in stable order.
 
     Playwright writes screenshots under `test-results/<test-id>/<name>.{png,jpg}`.
@@ -40,6 +44,8 @@ def collect(in_dir: Path) -> list[tuple[str, Path]]:
     candidates = (p for p in in_dir.rglob("*") if p.is_file() and p.suffix.lower() in IMG_EXTS)
     for img in sorted(candidates):
         rel = img.relative_to(in_dir)
+        if filter_re and not filter_re.search(str(rel)):
+            continue
         parts = rel.parts
         if len(parts) >= 2:
             test_label = humanize(parts[0])
@@ -126,13 +132,22 @@ def main() -> None:
                     help="Playwright test-results directory (default test-results)")
     ap.add_argument("--out", type=Path, default=Path("/tmp/e2e-report/index.html"),
                     help="output HTML path (default /tmp/e2e-report/index.html)")
+    ap.add_argument("--filter", dest="filter_re", default=None,
+                    help="case-insensitive regex; keep only screenshots whose "
+                         "path relative to --in matches (e.g. 'login|signup')")
     args = ap.parse_args()
 
     if not args.in_dir.is_dir():
         raise SystemExit(f"input directory not found: {args.in_dir}")
 
-    shots = collect(args.in_dir)
+    filter_re = re.compile(args.filter_re, re.IGNORECASE) if args.filter_re else None
+    shots = collect(args.in_dir, filter_re)
     if not shots:
+        if filter_re:
+            raise SystemExit(
+                f"no screenshots under {args.in_dir} match --filter "
+                f"{args.filter_re!r} — loosen the regex or drop --filter"
+            )
         raise SystemExit(
             f"no screenshots found under {args.in_dir} — check the tests "
             "produced PNGs/JPEGs, or pass --in <dir>"
