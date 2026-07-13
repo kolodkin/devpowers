@@ -20,7 +20,7 @@ Four steps.
 - `all` — run the full test suite and report every screenshot. Without it, the report is scoped to the tests worked on in this session (step 1).
 - `--in` — directory the project's tests write screenshots to. Default `test-results/` (Playwright JS and pytest-playwright convention). Pass an explicit path if the project writes elsewhere.
 - `--out` — output HTML path. Default `/tmp/e2e-report/index.html`.
-- `--screenshot-on` — additionally force Playwright to save a final-state PNG per test (uses the override config / `--screenshot on` flag). Off by default.
+- `--screenshot-on` — additionally force Playwright to save a final-state PNG per test (uses the override config / `--screenshot on` flag). Off by default. Final-frame only: misses transient states and yields N near-duplicate images for N tests.
 
 ## 1. Pick the scope
 
@@ -37,7 +37,13 @@ If the list is empty — nothing test-related was touched this session — fall 
 
 If the project has no Playwright tests (no `playwright.config.*` and no `pytest-playwright`), stop and tell the user.
 
-Run the tests as-is and harvest the screenshots they already take inline — only the session's test files in session scope, everything with `all`:
+Check whether the in-scope tests already take inline screenshots (grep them for `screenshot`), then pick:
+
+1. **Inline screenshots present** — run as-is and harvest them (below).
+2. **None** — offer to instrument the tests first (use the devpowers:inline-screenshots skill) instead of silently producing an empty or final-frame-only report.
+3. **`--screenshot-on`** — survey mode: use for a first run to see what the tests even display before deciding where to instrument, or when the user wants zero test edits.
+
+Run the tests — only the session's test files in session scope, everything with `all`:
 
 ```bash
 npx playwright test tests/login.spec.ts tests/signup.spec.ts   # JS, session scope

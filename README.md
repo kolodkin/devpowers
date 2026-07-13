@@ -37,6 +37,7 @@ A Claude Code plugin bundling developer productivity skills.
 - **shortify** — Review and shorten markdown docs in subdirectories, plus code comments and docstrings (manual/session opt-in) — cut wordiness, redundancy, and code duplication.
 - **screenshots** — Run the project's existing Playwright tests, collect the screenshots they write (inline `page.screenshot()` calls by default; `screenshot: 'on'` per test with `--screenshot-on`), and post-process them into a single self-contained `index.html` (base64-embedded). By default scoped to the tests worked on in the current session; `/screenshots all` reports the full suite. PR-ready visual record; no parallel capture script to maintain.
   - CLI: `npx`/`node` or `pytest`/`uv`, plus `playwright` browsers (`playwright install chromium`)
+- **inline-screenshots** — Add curated `page.screenshot()` calls inside existing Playwright tests: shots at the proving moment, one per visual behavior, caption-ready kebab-case filenames. Companion to `screenshots`, which offers it when the session's tests take no screenshots.
 - **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
   - CLI: `git`
 - **setup-mcp** — Register a known MCP server (from the curated `mcps.json` manifest) into `./.mcp.json` or the user's Claude Code config. Bounded to vetted entries; refuses unknown names. Use to install `github`, `mcp-atlassian`, or any future entry added to the manifest.
