@@ -14,14 +14,13 @@ Four steps.
 ## Invocation
 
 ```
-/screenshots [all] [--in DIR] [--out PATH] [--screenshot-on] [--chat]
+/screenshots [all] [--in DIR] [--out PATH] [--screenshot-on]
 ```
 
 - `all` — run the full test suite and report every screenshot. Without it, the report is scoped to the tests worked on in this session (step 1).
 - `--in` — directory the project's tests write screenshots to. Default `test-results/` (Playwright JS and pytest-playwright convention). Pass an explicit path if the project writes elsewhere.
 - `--out` — output HTML path. Default `/tmp/e2e-report/index.html`.
 - `--screenshot-on` — additionally force Playwright to save a final-state PNG per test (uses the override config / `--screenshot on` flag). Off by default.
-- `--chat` — deliver the relevant screenshots as images directly in the chat instead of an HTML report. Skips step 3; see step 4.
 
 ## 1. Pick the scope
 
@@ -79,8 +78,6 @@ Failing tests still produce PNGs and still belong in the report.
 
 ## 3. Run the capture script
 
-**Skip this step with `--chat`** — no HTML is built; go to step 4.
-
 Both scripts convert PNG screenshots to JPEG (quality 80) before base64-embedding — a single `index.html` of 30 screenshots is ~3 MB instead of ~30 MB. JPEG inputs are passed through.
 
 Pick the runtime that matches the project:
@@ -112,12 +109,9 @@ node report.js --out /tmp/e2e-report/index.html --filter 'login|signup'
 
 The filter also keeps stale screenshots from earlier full-suite runs out of the report — `test-results/` isn't cleaned between runs. If it matches nothing, the script exits 1 with a message; loosen the regex or fall back to no filter. Omit `--filter` for `all`.
 
-## 4. Deliver the report
+## 4. Deliver
 
-**Default** — send `/tmp/e2e-report/index.html` to the user with the `SendUserFile` tool. It's a single self-contained HTML (base64-embedded images), attachable to a PR.
+Two `SendUserFile` calls — the relevant screenshots render inline in the chat, and the report rides along as an attachment:
 
-**With `--chat`** — send the screenshot files themselves so they render inline in the conversation (in web/agent sessions an HTML attachment is only a download):
-
-1. Collect the screenshots under `--in` (default `test-results/`). In session scope, keep only paths matching the regex from step 3's `--filter` — keeps the images relevant to the session's tests and drops stale full-suite leftovers. With `all`, keep everything.
-2. Send them in one `SendUserFile` call with `display: 'render'`, newest per test first, with a caption naming the tests they came from.
-3. If more than 12 match, don't flood the chat — build the HTML report instead (step 3 + default delivery) and say why.
+1. **Inline images** — the screenshot files under `--in` that made it into the report (in session scope, paths matching step 3's `--filter` regex; with `all`, everything). Send them in one call with `display: 'render'` and a caption naming the tests they came from. If more than 12 match, skip this call and say so — the report has them all.
+2. **Report** — `/tmp/e2e-report/index.html` with `display: 'attach'`. A single self-contained HTML (base64-embedded images), attachable to a PR.
