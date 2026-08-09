@@ -1,12 +1,10 @@
 ---
 name: screenshots
 description: >
-  Run the project's existing Playwright tests and deliver their screenshots —
-  bundled into a single self-contained `index.html`, or sent as inline images
-  in the chat with `--chat`. Use when the user asks for an e2e screenshot
-  report, a visual record of UI flows, a PR-ready visual of the running app,
-  wants test screenshots shown directly in the chat, or invokes
-  `/screenshots`. Playwright-only.
+  Run the project's existing Playwright tests and deliver their screenshots.
+  Use when the user asks for an e2e screenshot report, a visual record of UI
+  flows, a PR-ready visual of the running app, wants test screenshots shown
+  directly in the chat, or invokes `/screenshots`. Playwright-only.
 ---
 
 # screenshots
