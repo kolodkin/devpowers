@@ -1,10 +1,12 @@
 ---
 name: screenshots
 description: >
-  Run the project's existing Playwright tests and bundle their screenshots into
-  a single self-contained `index.html`. Use when the user asks for an e2e
-  screenshot report, a visual record of UI flows, a PR-ready visual of the
-  running app, or invokes `/screenshots`. Playwright-only.
+  Run the project's existing Playwright tests and deliver their screenshots —
+  bundled into a single self-contained `index.html`, or sent as inline images
+  in the chat with `--chat`. Use when the user asks for an e2e screenshot
+  report, a visual record of UI flows, a PR-ready visual of the running app,
+  wants test screenshots shown directly in the chat, or invokes
+  `/screenshots`. Playwright-only.
 ---
 
 # screenshots
@@ -14,13 +16,14 @@ Four steps.
 ## Invocation
 
 ```
-/screenshots [all] [--in DIR] [--out PATH] [--screenshot-on]
+/screenshots [all] [--in DIR] [--out PATH] [--screenshot-on] [--chat]
 ```
 
 - `all` — run the full test suite and report every screenshot. Without it, the report is scoped to the tests worked on in this session (step 1).
 - `--in` — directory the project's tests write screenshots to. Default `test-results/` (Playwright JS and pytest-playwright convention). Pass an explicit path if the project writes elsewhere.
 - `--out` — output HTML path. Default `/tmp/e2e-report/index.html`.
 - `--screenshot-on` — additionally force Playwright to save a final-state PNG per test (uses the override config / `--screenshot on` flag). Off by default.
+- `--chat` — deliver the relevant screenshots as images directly in the chat instead of an HTML report. Skips step 3; see step 4.
 
 ## 1. Pick the scope
 
@@ -78,6 +81,8 @@ Failing tests still produce PNGs and still belong in the report.
 
 ## 3. Run the capture script
 
+**Skip this step with `--chat`** — no HTML is built; go to step 4.
+
 Both scripts convert PNG screenshots to JPEG (quality 80) before base64-embedding — a single `index.html` of 30 screenshots is ~3 MB instead of ~30 MB. JPEG inputs are passed through.
 
 Pick the runtime that matches the project:
@@ -111,4 +116,10 @@ The filter also keeps stale screenshots from earlier full-suite runs out of the 
 
 ## 4. Deliver the report
 
-Send `/tmp/e2e-report/index.html` to the user with the `SendUserFile` tool. It's a single self-contained HTML (base64-embedded images), attachable to a PR.
+**Default** — send `/tmp/e2e-report/index.html` to the user with the `SendUserFile` tool. It's a single self-contained HTML (base64-embedded images), attachable to a PR.
+
+**With `--chat`** — send the screenshot files themselves so they render inline in the conversation (in web/agent sessions an HTML attachment is only a download):
+
+1. Collect the screenshots under `--in` (default `test-results/`). In session scope, keep only paths matching the regex from step 3's `--filter` — keeps the images relevant to the session's tests and drops stale full-suite leftovers. With `all`, keep everything.
+2. Send them in one `SendUserFile` call with `display: 'render'`, newest per test first, with a caption naming the tests they came from.
+3. If more than 12 match, don't flood the chat — build the HTML report instead (step 3 + default delivery) and say why.
