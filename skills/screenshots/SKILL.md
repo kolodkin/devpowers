@@ -1,10 +1,10 @@
 ---
 name: screenshots
 description: >
-  Run the project's existing Playwright tests and bundle their screenshots into
-  a single self-contained `index.html`. Use when the user asks for an e2e
-  screenshot report, a visual record of UI flows, a PR-ready visual of the
-  running app, or invokes `/screenshots`. Playwright-only.
+  Run the project's existing Playwright tests and deliver their screenshots.
+  Use when the user asks for an e2e screenshot report, a visual record of UI
+  flows, a PR-ready visual of the running app, wants test screenshots shown
+  directly in the chat, or invokes `/screenshots`. Playwright-only.
 ---
 
 # screenshots
@@ -109,6 +109,9 @@ node report.js --out /tmp/e2e-report/index.html --filter 'login|signup'
 
 The filter also keeps stale screenshots from earlier full-suite runs out of the report — `test-results/` isn't cleaned between runs. If it matches nothing, the script exits 1 with a message; loosen the regex or fall back to no filter. Omit `--filter` for `all`.
 
-## 4. Deliver the report
+## 4. Deliver
 
-Send `/tmp/e2e-report/index.html` to the user with the `SendUserFile` tool. It's a single self-contained HTML (base64-embedded images), attachable to a PR.
+Two `SendUserFile` calls — the relevant screenshots render inline in the chat, and the report rides along as an attachment:
+
+1. **Inline images** — the screenshot files under `--in` that made it into the report (in session scope, paths matching step 3's `--filter` regex; with `all`, everything). Send them in one call with `display: 'render'` and a caption naming the tests they came from. If more than 12 match, skip this call and say so — the report has them all.
+2. **Report** — `/tmp/e2e-report/index.html` with `display: 'attach'`. A single self-contained HTML (base64-embedded images), attachable to a PR.
