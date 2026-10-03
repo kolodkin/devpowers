@@ -1,7 +1,7 @@
 {
   "name": "devpowers",
   "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, Jira setup and ticket creator, git commit helper, markdown shortener, local/remote Docker debuggers, MCP server setup, an e2e UI screenshot report generator, and a bottom-line output style for terse chat replies.",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "author": {
     "name": "kolodkin"
   },
