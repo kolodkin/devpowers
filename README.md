@@ -45,3 +45,9 @@ A Claude Code plugin bundling developer productivity skills.
   - CLI: `ssh`, `docker` (on the remote host), `curl`
 - **local-docker-debug** — Discover and tail logs for Docker containers running on the local Docker daemon (read-only).
   - CLI: `docker`, `curl`
+
+## Output styles
+
+- **bottom-line** — Terse chat replies: answer first, max 2-3 lines per item, details only on request. Coding behavior is unchanged.
+  - Activate: `/output-style devpowers:bottom-line` (or `/config` → Output style). Back: `/output-style default`.
+  - Default everywhere: `"outputStyle": "devpowers:bottom-line"` in `~/.claude/settings.json`.
