@@ -48,6 +48,20 @@ A Claude Code plugin bundling developer productivity skills.
 
 ## Output styles
 
-- **bottom-line** — Terse chat replies: answer first, max 2-3 lines per item, details only on request. Coding behavior is unchanged.
-  - Activate: `/output-style devpowers:bottom-line` (or `/config` → Output style). Back: `/output-style default`.
-  - Default everywhere: `"outputStyle": "devpowers:bottom-line"` in `~/.claude/settings.json`.
+- **bottom-line** — Terse chat replies: answer first, max 2-3 lines per item, details only on request. Coding behavior is unchanged. Not forced: pick it when you want it.
+
+**Try it for one session** (saves to the project's `.claude/settings.local.json`):
+
+```
+/output-style devpowers:bottom-line
+/output-style default
+```
+
+**Make it the default everywhere** — set `outputStyle` in `~/.claude/settings.json`. With `jq`, keeps other keys intact:
+
+```bash
+mkdir -p ~/.claude; f=~/.claude/settings.json; [ -f "$f" ] || echo '{}' > "$f"
+jq '.outputStyle="devpowers:bottom-line"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+```
+
+Works on your machine and in a Claude Code cloud environment setup script, right after the install commands above. A project's own `.claude/settings.local.json` overrides the global value, so remove `outputStyle` there if the global default doesn't apply.
