@@ -75,7 +75,7 @@ Cut redundancy, keep intent. Change comment/docstring **text only** — never lo
 
 - Tooling directives: `# noqa`, `# type: ignore`, `eslint-disable`, `# pragma`, shebangs, encoding lines.
 - License/copyright headers, `TODO`/`FIXME`, doctest examples, and public-API docs required by convention.
-- Doc back-links (`See docs/...`). They can look like filler but are load-bearing. Keep them in one block right after the docstring's summary line, linking one or two docs at most. Flag any link whose quoted heading no longer exists in the doc.
+- Doc back-links (`See docs/...`), in one block right after the docstring's summary line, linking one or two docs at most. Flag any link whose quoted heading no longer exists in the doc.
 
   ```python
   """Kubernetes runner.
