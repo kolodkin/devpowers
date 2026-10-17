@@ -78,15 +78,6 @@ Cut redundancy, keep intent. Change comment/docstring **text only** — never lo
 - Doc back-links (`See docs/...`). They can look like filler but are load-bearing. Keep them in one block right after the docstring's summary line, linking one or two docs at most. Flag any link whose quoted heading no longer exists in the doc.
 
   ```python
-  # BEFORE — links scattered, one glued to prose
-  """Kubernetes runner. See docs/designs/kubernetes_runner.md.
-
-  Drives Pods via drive_vehicle.
-
-  See docs/designs/orchestration.md — "Execution layers".
-  """
-
-  # AFTER — one block after the summary
   """Kubernetes runner.
 
   See docs/designs/kubernetes_runner.md.
