@@ -38,7 +38,6 @@ A Claude Code plugin bundling developer productivity skills.
 - **ui-sketch** — Draw a plain-ASCII layout sketch of a screen, panel or modal for a doc page, design note or chat answer: boxes from `+ - |`, a bullet per control, no box-drawing characters so it renders the same in any font.
 - **screenshots** — Run the project's existing Playwright tests, collect the screenshots they write (inline `page.screenshot()` calls by default; `screenshot: 'on'` per test with `--screenshot-on`), and post-process them into a single self-contained `index.html` (base64-embedded). By default scoped to the tests worked on in the current session; `/screenshots all` reports the full suite. PR-ready visual record; no parallel capture script to maintain.
   - CLI: `npx`/`node` or `pytest`/`uv`, plus `playwright` browsers (`playwright install chromium`)
-- **git-commit** — Create a git commit with staged changes, handling pre-commit hooks automatically.
   - CLI: `git`
 - **setup-mcp** — Register a known MCP server (from the curated `mcps.json` manifest) into `./.mcp.json` or the user's Claude Code config. Bounded to vetted entries; refuses unknown names. Use to install `github`, `mcp-atlassian`, or any future entry added to the manifest.
   - CLI: `claude` (for `claude mcp add`), plus whatever the chosen MCP entry requires (`docker`, `uvx`, ...)

@@ -155,4 +155,4 @@ After pushing fixes, re-run `/check-pr` to verify the new CI run and pick up any
 
 - Step 4b fetches failed-job logs via `mcp__plugin_devpowers_github__get_job_logs` (the actions toolset, enabled by the `X-MCP-Toolsets: all` header in the plugin's bundled `.mcp.json`). The only remaining shell touchpoint is the Step 4c `Monitor`, which polls the REST check-runs endpoint with the same `$GH_TOKEN` because a `Monitor` can't call MCP tools mid-loop.
 - The `Monitor` is session-bound. If the session ends before CI completes, the monitor dies; the next `/check-pr` will pick up wherever things are.
-- This skill never pushes commits on its own. Fixes come from other skills (`git-commit`, manual edits + push). `/check-pr` only observes and reports.
+- This skill never pushes commits on its own. Fixes come from manual edits + push. `/check-pr` only observes and reports.
