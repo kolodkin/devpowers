@@ -6,5 +6,5 @@
     "name": "kolodkin"
   },
   "homepage": "https://github.com/kolodkin/devpowers",
-  "keywords": ["git", "commit", "github", "actions", "workflow", "ci", "pr", "pull-request", "review", "skill", "install", "markdown", "docs", "shortify", "ui-sketch", "ascii", "layout", "docker", "ssh", "debug", "logs", "mcp", "setup", "e2e", "screenshots", "playwright", "report", "jira", "atlassian", "ticket", "issue", "output-style", "concise", "terse"]
+  "keywords": ["git", "commit", "github", "actions", "workflow", "ci", "pr", "pull-request", "review", "skill", "install", "markdown", "docs", "shortify", "ascii-sketch", "ascii", "layout", "diagram", "docker", "ssh", "debug", "logs", "mcp", "setup", "e2e", "screenshots", "playwright", "report", "jira", "atlassian", "ticket", "issue", "output-style", "concise", "terse"]
 }
