@@ -46,20 +46,20 @@ Pad every box to the same width. Example: hub-and-spoke network.
 
 ```
 +---------------------------------+        +---------------------------------+        +---------------------------------+
-| vnet-stg                        |        | vnet-hub                        |        | vnet-prod                       |
-| 10.30.0.0/16   (stg spoke)      |        | 10.0.0.0/16    (hub)            |        | 10.20.0.0/16   (prod spoke)     |
+| vnet-web                        |        | vnet-hub                        |        | vnet-analytics                  |
+| 10.110.0.0/16  (web spoke)      |        | 10.100.0.0/16  (hub)            |        | 10.120.0.0/16  (data spoke)     |
 |                                 |        |                                 |        |                                 |
-| snet-aks-sys     10.30.0.0/26   |  peer  | +-------------------------+     |  peer  | snet-data      10.20.4.0/24     |
-|   controller pod, LB .60        |<------>| | fw-hub       10.0.4.4   |     |<------>|   pg-prod      10.20.4.4        |
-| snet-aks-workers 10.30.0.128/26 |        | | fwpolicy-hub            |     |        |   delegated, no NSG             |
-| snet-pe          10.30.0.64/27  |        | +-------------------------+     |        | snet-app, snet-platform         |
-|                                 |        | VPN gateway, DNS resolver       |        |   -> rt-prod 0/0 -> fw          |
-| rt-stg                          |        |                                 |        | k8s, mgmt, AppGW, ...           |
-|   0.0.0.0/0 -> 10.0.4.4         |        |                                 |        |                                 |
+| snet-frontend  10.110.1.0/24    |  peer  | +-------------------------+     |  peer  | snet-warehouse 10.120.1.0/24    |
+|   app service, PE .10           |<------>| | fw-hub     10.100.1.4   |     |<------>|   sql-dw       10.120.1.5       |
+| snet-api       10.110.2.0/24    |        | | fwpolicy-hub            |     |        |   private endpoint only         |
+|   api scale set                 |        | +-------------------------+     |        | snet-etl       10.120.2.0/24    |
+| snet-pe        10.110.3.0/27    |        | VPN gateway, DNS resolver       |        |   -> rt-analytics 0/0 -> fw     |
+| rt-web                          |        | Bastion                         |        | databricks, storage, ...        |
+|   0.0.0.0/0 -> 10.100.1.4       |        |                                 |        |                                 |
 +---------------------------------+        +---------------------------------+        +---------------------------------+
 ```
 
-- Indent two spaces for what belongs to the line above (a pod in a subnet, a
+- Indent two spaces for what belongs to the line above (a database in a subnet, a
   route in a route table).
-- Anonymize: generic names (`vnet-prod`, `pg-prod`) and private ranges, never
+- Anonymize: generic names (`vnet-web`, `sql-dw`) and private ranges, never
   real tenant, product or region names.
