@@ -10,7 +10,9 @@ box-drawing characters, Unicode arrows or emoji: fonts render them at
 different widths and boxes break. Every line of a box has the same length;
 count before you commit.
 
-## UI layout
+The same rules fit any boxes-and-labels sketch; two examples follow.
+
+## Example: UI layout
 
 One box per screen or panel, then a bullet per control. Show structure, not
 pixels: what is where and what it is called. Example: a query panel.
@@ -36,7 +38,7 @@ pixels: what is where and what it is called. Example: a query panel.
 - Keep it under 15 lines; a second sketch is for a different state (a
   modal, an empty state), not more detail.
 
-## Architecture diagram
+## Example: network diagram
 
 One box per component (network, service, host), side by side or stacked, all
 the same width. Link boxes with `<------>` or `-->`, link name above the arrow.
