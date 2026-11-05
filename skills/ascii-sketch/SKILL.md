@@ -5,16 +5,15 @@ description: Use when a doc page, design note or chat answer needs to show a scr
 
 # ASCII sketch
 
-IMPORTANT!!! Only ASCII: `+ - |` for boxes, `<-` for arrows, `...` for
-ellipsis. No box-drawing characters, Unicode arrows or emoji: fonts render
-them at different widths and the box falls apart. Every line of a box has the
-same length; count before you commit.
+IMPORTANT!!! Only ASCII: `+ - |` boxes, `<-` arrows, `...` ellipsis. No
+box-drawing characters, Unicode arrows or emoji: fonts render them at
+different widths and boxes break. Every line of a box has the same length;
+count before you commit.
 
 ## UI layout
 
-One box per screen or panel, followed by a bullet per control. Show structure,
-not pixels: a reader should see what is where and what it is called. Example:
-a query panel.
+One box per screen or panel, then a bullet per control. Show structure, not
+pixels: what is where and what it is called. Example: a query panel.
 
 ```
 +-------------------------------------------------+
@@ -39,10 +38,10 @@ a query panel.
 
 ## Architecture diagram
 
-One box per component (network, service, host), side by side or stacked;
-`<------>` or `-->` between boxes for links, with the link name above the
-arrow. Inside a box: name, address range or role, then the parts that matter.
-Pad every box to the same width. Example: hub-and-spoke network.
+One box per component (network, service, host), side by side or stacked, all
+the same width. Link boxes with `<------>` or `-->`, link name above the arrow.
+Inside: name, address range or role, then the parts that matter. Example:
+hub-and-spoke network.
 
 ```
 +---------------------------------+        +---------------------------------+        +---------------------------------+
@@ -59,7 +58,7 @@ Pad every box to the same width. Example: hub-and-spoke network.
 +---------------------------------+        +---------------------------------+        +---------------------------------+
 ```
 
-- Indent two spaces for what belongs to the line above (a database in a subnet, a
-  route in a route table).
+- Indent two spaces for what belongs to the line above (a database in a
+  subnet, a route in a route table).
 - Anonymize: generic names (`vnet-web`, `sql-dw`) and private ranges, never
   real tenant, product or region names.
