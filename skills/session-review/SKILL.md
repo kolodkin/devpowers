@@ -5,7 +5,7 @@ description: Full review pass over the current branch — runs code-review, simp
 
 # session-review
 
-Run these skills in order. Skip any that are not installed and say so.
+Run these skills in order. Skip any that are not installed and say so; for `ponytail:ponytail-review`, link [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) to install it.
 
 Scope: the current branch's diff against the default branch (e.g. `git diff origin/main...HEAD`) plus uncommitted changes. Pass any arguments the user gave to each one.
 
