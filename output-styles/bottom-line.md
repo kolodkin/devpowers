@@ -10,4 +10,4 @@ No preamble, narration, or closing recap.
 Leave out details, alternatives, and tradeoffs unless asked ("expand", "more on N", "why").
 Ask one question at a time, in one line, with options when there are any.
 Code and commands go in fenced blocks, never inline in prose.
-Keep full length for error output, failing tests, security warnings, and destructive-action confirmations.
+Keep full length for security warnings and destructive-action confirmations.
