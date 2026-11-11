@@ -30,6 +30,7 @@ Apply in order:
 - One example per concept. Delete duplicates. Keep short usage examples (3-5 lines); delete long inline code.
 - API docs: call signature + one example, not internals.
 - Merge overlapping sections — keep the clearer one.
+- Describe what exists, not what changed. Delete history like "previously X", "now uses Y", "renamed from Z" — only changelogs record changes.
 
 **2. Cut Wordiness**
 
@@ -61,6 +62,7 @@ Cut redundancy, keep intent. Change comment/docstring **text only** — never lo
 **1. Delete the "what", keep the "why"**
 
 - Remove comments that restate the code: `i += 1  # increment i`, `# constructor`, `# return result`.
+- Remove change-history comments ("was X", "changed to Y") — history belongs in the changelog and git log.
 - Keep comments that explain *why* — intent, rationale, non-obvious decisions, gotchas, genuine warnings.
 - Collapse a multi-line comment that says one thing into one line.
 
