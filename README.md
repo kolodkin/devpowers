@@ -38,6 +38,8 @@ A Claude Code plugin bundling developer productivity skills.
 - **session-review** — Full review pass over the current branch: runs `code-review`, `simplify`, `ponytail:ponytail-review` and `shortify` in order, applying fixes between steps.
   - Plugins: `ponytail` (for `ponytail-review`; skipped if absent)
 - **ascii-sketch** — Draw a plain-ASCII sketch of a screen, panel, modal or architecture/network diagram for a doc page, design note or chat answer: boxes from `+ - |`, a bullet per control, no box-drawing characters so it renders the same in any font.
+- **mermaid-sketch** — Write a Mermaid sequence, flow or state diagram for a doc page, design note or chat answer, render it in headless Chromium to validate the syntax, and show the rendered PNG.
+  - CLI: `node`, plus `playwright` with Chromium
 - **screenshots** — Run the project's existing Playwright tests, collect the screenshots they write (inline `page.screenshot()` calls by default; `screenshot: 'on'` per test with `--screenshot-on`), and post-process them into a single self-contained `index.html` (base64-embedded). By default scoped to the tests worked on in the current session; `/screenshots all` reports the full suite. PR-ready visual record; no parallel capture script to maintain.
   - CLI: `npx`/`node` or `pytest`/`uv`, plus `playwright` browsers (`playwright install chromium`)
   - CLI: `git`
