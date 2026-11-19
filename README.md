@@ -45,6 +45,8 @@ A Claude Code plugin bundling developer productivity skills.
   - CLI: `git`
 - **setup-mcp** — Register a known MCP server (from the curated `mcps.json` manifest) into `./.mcp.json` or the user's Claude Code config. Bounded to vetted entries; refuses unknown names. Use to install `github`, `mcp-atlassian`, or any future entry added to the manifest.
   - CLI: `claude` (for `claude mcp add`), plus whatever the chosen MCP entry requires (`docker`, `uvx`, ...)
+- **claudeai-run-setup** — Scaffold a project's `claudeai/` scripts (`_guard.sh`, `setup.sh`, `run.sh`, one `setup_<svc>.sh` per service) and its project-level `claudeai-run` skill, so a Claude Code web (cloud) session can start the backing services CI gets from Docker. Services come from the project's CI or from the user.
+  - CLI: `bash`, `curl`
 - **ssh-docker-debug** — Discover and tail logs for Docker containers running on a remote VM over SSH (read-only).
   - CLI: `ssh`, `docker` (on the remote host), `curl`
 - **local-docker-debug** — Discover and tail logs for Docker containers running on the local Docker daemon (read-only).
