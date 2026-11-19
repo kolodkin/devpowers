@@ -19,7 +19,7 @@ log() { printf '\033[32m[run]\033[0m %s\n' "$*"; }
 
 if [ "${1:-}" = "stop" ]; then
   for ((i = ${#SERVICES[@]} - 1; i >= 0; i--)); do
-    "$ROOT/claudeai/setup_${SERVICES[i]}.sh" stop
+    "$ROOT/claudeai/setup_${SERVICES[i]}.sh" stop || true   # keep stopping the rest
   done
   log "all services stopped"
   exit 0

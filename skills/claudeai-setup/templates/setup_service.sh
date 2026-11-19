@@ -26,7 +26,9 @@ die() { printf '\033[31m[__SVC__] error:\033[0m %s\n' "$*" >&2; exit 1; }
 up() { (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null; }
 
 if [ "${1:-}" = "stop" ]; then
-  if [ -s "$PIDFILE" ] && kill "$(cat "$PIDFILE")" 2>/dev/null; then
+  if [ -s "$PIDFILE" ] && pid="$(cat "$PIDFILE")" && kill "$pid" 2>/dev/null; then
+    # Wait for the exit, so a start right after does not see the dying server as up.
+    for _ in $(seq 1 30); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
     log "stopped"
   else
     log "nothing to stop"
