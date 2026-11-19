@@ -23,11 +23,11 @@ skill, so a cloud session can start the services CI gets from Docker.
 |--------------------------------------|---------------------------------|--------------------------------------------------|
 | `claudeai/_guard.sh`                 | `templates/_guard.sh` (as is)   | Refuses to run outside the web container         |
 | `claudeai/setup_<svc>.sh`            | `templates/setup_service.sh`    | One per service: reuse, install, start, `stop`   |
-| `claudeai/run.sh`                    | `templates/run.sh`              | Start all in order, `stop` in reverse            |
-| `claudeai/setup.sh`                  | `templates/setup.sh`            | Project deps, then `run.sh`                      |
+| `claudeai/run.sh`                    | `templates/run.sh`              | The one entry point: start all, `stop` in reverse |
 | `.claude/skills/claudeai-run/SKILL.md` | `templates/claudeai-run.SKILL.md` | Tells future sessions how to start and use them |
 
-Keep this shape. Each template marks its project-specific parts with `# EDIT:`
+Keep this shape: no `claudeai/setup.sh` — `run.sh` installs whatever is
+missing, so first-time setup and per-session restart are the same command. Each template marks its project-specific parts with `# EDIT:`
 and `__PLACEHOLDER__`; change those and leave the rest.
 
 ## 1. Find the services
@@ -81,7 +81,7 @@ Add `.cache/` to `.gitignore`.
 ## 4. Verify
 
 ```bash
-claudeai/setup.sh          # installs, ends with "[run] all services up"
+claudeai/run.sh            # installs, ends with "[run] all services up"
 claudeai/run.sh stop
 claudeai/run.sh            # restarts from the installed state, no downloads
 claudeai/run.sh            # second run: every service "already up"

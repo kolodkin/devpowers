@@ -5,9 +5,10 @@ description: Start the local backing services (__SERVICE_LIST__) that __TESTS__ 
 
 # claudeai-run Skill
 
-Brings up the local backing services. Binaries and on-disk state are installed
-once by `claudeai/setup.sh` and survive a container resume, but the processes
-don't — so each session must restart them. That's what `claudeai/run.sh` does.
+Brings up the local backing services. `claudeai/run.sh` calls one
+`claudeai/setup_<svc>.sh` per service; each installs its binary and on-disk state
+under `.cache/` when missing, then starts it. That state survives a container
+resume, but the processes don't — so each session must run it again.
 
 ## Preflight: web environment only
 
