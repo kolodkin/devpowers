@@ -1,9 +1,9 @@
 ---
-name: claudeai-run-setup
-description: Use when a project needs its backing services (databases, object stores, queues, daemons) runnable inside the Claude Code web (cloud) container, where Docker is unavailable - e.g. "/claudeai-run-setup", "set up claudeai-run", "add redis to claudeai", "make the CI services run in the cloud session", or tests fail there because a service CI provides is missing.
+name: claudeai-setup
+description: Use when a project needs its backing services (databases, object stores, queues, daemons) runnable inside the Claude Code web (cloud) container, where Docker is unavailable - e.g. "/claudeai-setup", "set up claudeai-run", "add redis to claudeai", "make the CI services run in the cloud session", or tests fail there because a service CI provides is missing.
 ---
 
-# claudeai-run-setup
+# claudeai-setup
 
 Scaffolds a project's `claudeai/` scripts and its project-level `claudeai-run`
 skill, so a cloud session can start the services CI gets from Docker.
@@ -11,7 +11,7 @@ skill, so a cloud session can start the services CI gets from Docker.
 ## Arguments
 
 ```
-/claudeai-run-setup [service ...]
+/claudeai-setup [service ...]
 ```
 
 - **service** (optional, repeatable) — services to set up. Omitted: derive
@@ -96,11 +96,3 @@ project skill for services that never came up.
 Fill `templates/claudeai-run.SKILL.md` into
 `.claude/skills/claudeai-run/SKILL.md`: one numbered line per service with
 its port and credentials, and the exact test command from step 4.
-
-## Reference
-
-[kolodkin/aaiclick `claudeai/`](https://github.com/kolodkin/aaiclick/tree/main/claudeai)
-is a working setup: ClickHouse, PostgreSQL and MinIO (built from source) with
-CI's credentials, an `env.sh`, and a migrations step. Read it for real install
-and start commands. It starts the services inside `run.sh`; new projects keep
-the start in each `setup_<svc>.sh`, as the templates do.
