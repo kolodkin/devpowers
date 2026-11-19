@@ -7,14 +7,12 @@
 # Usage:
 #   claudeai/setup___SVC__.sh          # ensure a server is running
 #   claudeai/setup___SVC__.sh stop     # stop the server this script started
-#
-# Env: __PORT_VAR__ (default __PORT__)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 . "$ROOT/claudeai/_guard.sh"
 CACHE="$ROOT/.cache"
-PORT="${__PORT_VAR__:-__PORT__}"
+PORT=__PORT__
 PIDFILE="$CACHE/__SVC__.pid"
 LOG="$CACHE/__SVC__.log"
 
@@ -41,30 +39,26 @@ mkdir -p "$CACHE"
 
 if up; then
   log "already up on :$PORT"
-  exit 0
+else
+  # EDIT: install once, guarded by a check for the binary / data dir, pinned to
+  # the version CI runs. Everything lands under $CACHE.
+  __INSTALL__
+
+  log "starting on :$PORT"
+  # setsid detaches the server from this shell's session and the stdio redirects
+  # drop every inherited fd, so it survives this script exiting and never holds
+  # open a pipe the caller is reading from. exec keeps $! the server's own pid.
+  # EDIT: the server command, with the credentials CI's service uses.
+  (
+    cd "$CACHE"
+    exec setsid __START_CMD__ </dev/null >"$LOG" 2>&1
+  ) &
+  echo $! > "$PIDFILE"
+
+  for _ in $(seq 1 60); do up && break; sleep 1; done
+  up || die "did not come up on :$PORT (see $LOG)"
+  log "up on :$PORT (pid $(cat "$PIDFILE"))"
 fi
 
-# EDIT: install once, guarded by a check for the binary / data dir, pinned to
-# the version CI runs. Everything lands under $CACHE.
-__INSTALL__
-
-log "starting on :$PORT"
-# setsid detaches the server from this shell's session and the stdio redirects
-# drop every inherited fd, so it survives this script exiting and never holds
-# open a pipe the caller is reading from. exec keeps $! the server's own pid.
-# EDIT: the server command, with the credentials CI's service uses.
-(
-  cd "$CACHE"
-  exec setsid __START_CMD__ </dev/null >"$LOG" 2>&1
-) &
-echo $! > "$PIDFILE"
-disown 2>/dev/null || true
-
-for _ in $(seq 1 60); do
-  if up; then
-    log "up on :$PORT (pid $(cat "$PIDFILE"))"
-    exit 0
-  fi
-  sleep 1
-done
-die "did not come up on :$PORT (see $LOG)"
+# EDIT: idempotent post-start steps this service needs on every run (create a
+# database or bucket, reset per-run state). Delete if there are none.

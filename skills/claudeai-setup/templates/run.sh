@@ -17,15 +17,23 @@ SERVICES=(__SERVICES__)
 
 log() { printf '\033[32m[run]\033[0m %s\n' "$*"; }
 
-if [ "${1:-}" = "stop" ]; then
-  for ((i = ${#SERVICES[@]} - 1; i >= 0; i--)); do
-    "$ROOT/claudeai/setup_${SERVICES[i]}.sh" stop || true   # keep stopping the rest
-  done
-  log "all services stopped"
-  exit 0
-fi
+case "${1:-start}" in
+  stop)
+    for ((i = ${#SERVICES[@]} - 1; i >= 0; i--)); do
+      "$ROOT/claudeai/setup_${SERVICES[i]}.sh" stop || true   # keep stopping the rest
+    done
+    log "all services stopped"
+    exit 0
+    ;;
+  start) ;;
+  *) echo "usage: $0 [start|stop]" >&2; exit 2 ;;
+esac
 
 for svc in "${SERVICES[@]}"; do
   "$ROOT/claudeai/setup_$svc.sh"
 done
+
+# EDIT: steps that need several services up (e.g. schema migrations). Delete
+# if there are none.
+
 log "all services up"

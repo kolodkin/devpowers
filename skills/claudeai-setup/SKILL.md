@@ -19,16 +19,17 @@ skill, so a cloud session can start the services CI gets from Docker.
 
 ## What it produces
 
-| File                                 | From template                   | Role                                             |
-|--------------------------------------|---------------------------------|--------------------------------------------------|
-| `claudeai/_guard.sh`                 | `templates/_guard.sh` (as is)   | Refuses to run outside the web container         |
-| `claudeai/setup_<svc>.sh`            | `templates/setup_service.sh`    | One per service: reuse, install, start, `stop`   |
-| `claudeai/run.sh`                    | `templates/run.sh`              | The one entry point: start all, `stop` in reverse |
+| File                                   | From template                     | Role                                            |
+|----------------------------------------|-----------------------------------|-------------------------------------------------|
+| `claudeai/_guard.sh`                   | `templates/_guard.sh` (as is)     | Refuses to run outside the web container        |
+| `claudeai/setup_<svc>.sh`              | `templates/setup_service.sh`      | One per service: reuse, install, start, `stop`  |
+| `claudeai/run.sh`                      | `templates/run.sh`                | Only entry point: start all, `stop` in reverse  |
 | `.claude/skills/claudeai-run/SKILL.md` | `templates/claudeai-run.SKILL.md` | Tells future sessions how to start and use them |
 
-Keep this shape: no `claudeai/setup.sh` — `run.sh` installs whatever is
-missing, so first-time setup and per-session restart are the same command. Each template marks its project-specific parts with `# EDIT:`
-and `__PLACEHOLDER__`; change those and leave the rest.
+Keep this shape. There is no `claudeai/setup.sh`: `run.sh` installs whatever
+is missing, so first-time setup and per-session restart are one command. Each
+template marks its project-specific parts with `# EDIT:` and
+`__PLACEHOLDER__`; change those and leave the rest.
 
 ## 1. Find the services
 
@@ -69,10 +70,12 @@ Copy the templates into `claudeai/`, fill them in, `chmod +x` all but
   the launcher's. Disable forking, or use the server's own pid file and stop
   command.
 - **Port clashes between services**: move one and say so in a comment.
-- **Per-run state** (an empty repo, a fresh bucket): recreate it before the
-  "already up" early exit, so every `run.sh` resets it.
-- **One-off steps after start** (migrations, create a database or bucket):
-  put them at the end of that service's script, idempotent.
+- **Post-start steps for one service** (create a database or bucket, reset
+  per-run state such as an empty repo): the slot at the end of that service's
+  script, idempotent. It runs on every `run.sh`, also when the server was
+  already up.
+- **Steps that need several services** (schema migrations): the slot in
+  `run.sh`, after the start loop.
 - **Tests need connection env vars**: add `claudeai/env.sh` with `export`
   lines mirroring CI, and have the project skill say to `source` it.
 
