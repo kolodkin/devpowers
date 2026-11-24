@@ -9,6 +9,8 @@ A Claude Code plugin bundling developer productivity skills.
 /plugin install devpowers@devpowers
 ```
 
+The GitHub skills need `GH_TOKEN` set.
+
 ## Skills
 
 - **action-run** — Trigger and monitor any GitHub Actions `workflow_dispatch` workflow by name through the GitHub MCP server's actions toolset, gather required inputs, and fix failures automatically.
