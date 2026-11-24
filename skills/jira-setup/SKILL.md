@@ -18,14 +18,14 @@ Walk through the steps below and prompt only for what's missing. Re-running this
 
 ## Step 0 — Ensure the mcp-atlassian MCP server is registered
 
-This skill (and `jira-ticket`) drive Jira through the `mcp__mcp-atlassian__*` tools. Check whether `mcp__mcp-atlassian__jira_create_issue` is visible in your tool list.
+This skill (and `jira-ticket`) drive Jira through the `mcp__mcp-atlassian__*` tools. If `mcp__mcp-atlassian__jira_create_issue` is visible in your tool list, the server is loaded — go to Step 1. Otherwise:
 
-- **If it's visible**, the server is registered. Skip to Step 1.
-- **If it's missing**, register it. Check the launcher first: `command -v uvx` (if absent, tell the user to install it with `curl -LsSf https://astral.sh/uv/install.sh | sh` and stop). Then run:
-  ```bash
-  claude mcp add --scope user mcp-atlassian -- uvx mcp-atlassian
-  ```
-  Use `--scope project` instead if the user wants it shared with teammates via `./.mcp.json`. MCP servers only load at startup, so tell the user to **restart Claude Code and re-run `/jira-setup`** (or `/jira-ticket`), then stop.
+1. Run `command -v uvx`. If it's absent, tell the user to install it with `curl -LsSf https://astral.sh/uv/install.sh | sh` and stop.
+2. Register the server unless it already is (pass `--scope project` only if the user asked to share it via `./.mcp.json`):
+   ```bash
+   claude mcp get mcp-atlassian >/dev/null 2>&1 || claude mcp add --scope user mcp-atlassian -- uvx mcp-atlassian
+   ```
+3. Continue to Step 1, which ends with the restart the server needs.
 
 ## Step 1 — Validate credentials
 
@@ -47,6 +47,8 @@ echo "JIRA_PERSONAL_TOKEN=${JIRA_PERSONAL_TOKEN:+SET}"
   - `JIRA_PERSONAL_TOKEN` → create a Personal Access Token in your Jira profile, then `export JIRA_PERSONAL_TOKEN=<your-pat>`. `JIRA_USERNAME` is optional here, but if you set it the jira-ticket skill will use it for the assignee / reporter on created tickets.
 
 The `mcp-atlassian` server reads these from the shell that launched Claude Code, so encourage the user to add the relevant exports to their `~/.zshrc` or `~/.bashrc` and restart Claude Code so the server picks them up.
+
+If the `mcp-atlassian` tools weren't visible in Step 0, stop here even when the credentials are complete: MCP servers only load at startup, so tell the user to **restart Claude Code and re-run `/jira-setup`** (or `/jira-ticket`). If they already restarted, have them open `/mcp` to see why the server failed to start.
 
 ## Step 2 — Resolve project (auto-discover if needed)
 
