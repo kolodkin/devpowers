@@ -21,9 +21,11 @@ Walk through the steps below and prompt only for what's missing. Re-running this
 This skill (and `jira-ticket`) drive Jira through the `mcp__mcp-atlassian__*` tools. Check whether `mcp__mcp-atlassian__jira_create_issue` is visible in your tool list.
 
 - **If it's visible**, the server is registered. Skip to Step 1.
-- **If it's missing**, hand off to the `setup-mcp` skill, which is the bounded installer for this plugin's MCP servers — `mcp-atlassian` is already in its manifest. **Invoke `setup-mcp` via the Skill tool with `mcp-atlassian`** (e.g. `/setup-mcp mcp-atlassian`). It shows the proposed config, asks for scope, registers the server, and verifies the `uvx` prerequisite. Because MCP servers only load at startup, it will tell the user to restart Claude Code — so once it returns, tell the user to **restart and re-run `/jira-setup`** (or `/jira-ticket`), then stop. The tools won't be available until the restart.
-
-  If the `setup-mcp` skill isn't available in this session for any reason, fall back to instructing the user: "Run `/setup-mcp mcp-atlassian`, restart Claude Code, then re-run `/jira-setup`."
+- **If it's missing**, register it. Check the launcher first: `command -v uvx` (if absent, tell the user to install it with `curl -LsSf https://astral.sh/uv/install.sh | sh` and stop). Then run:
+  ```bash
+  claude mcp add --scope user mcp-atlassian -- uvx mcp-atlassian
+  ```
+  Use `--scope project` instead if the user wants it shared with teammates via `./.mcp.json`. MCP servers only load at startup, so tell the user to **restart Claude Code and re-run `/jira-setup`** (or `/jira-ticket`), then stop.
 
 ## Step 1 — Validate credentials
 

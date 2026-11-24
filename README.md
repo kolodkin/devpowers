@@ -26,13 +26,13 @@ A Claude Code plugin bundling developer productivity skills.
   - CLI: `git`, `curl` (curl only for the CI-watch Monitor poll)
   - Env: `GH_TOKEN` (long-lived PAT, used by both the MCP server and the Monitor poll)
   - Token: classic PAT `repo`, fine-grained `Pull requests: read/write`, `Actions: read`
-- **jira-setup** — Ensure the `mcp-atlassian` MCP server is registered (via `setup-mcp`) and resolve Jira defaults (URL, auth, project, board) so `jira-ticket` can run. Idempotent — re-runs only prompt for missing pieces.
-  - MCP: `mcp-atlassian` (registered on demand via `setup-mcp`; not bundled)
-  - CLI: `uvx` (launches the `mcp-atlassian` server)
+- **jira-setup** — Ensure the `mcp-atlassian` MCP server is registered and resolve Jira defaults (URL, auth, project, board) so `jira-ticket` can run. Idempotent — re-runs only prompt for missing pieces.
+  - MCP: `mcp-atlassian` (registered on demand by this skill; not bundled)
+  - CLI: `claude` (for `claude mcp add`), `uvx` (launches the `mcp-atlassian` server)
   - Env: `JIRA_URL`, plus `JIRA_USERNAME` + `JIRA_API_TOKEN` (Cloud) **or** `JIRA_PERSONAL_TOKEN` (Server / Data Center). Optional: `JIRA_PROJECT_KEY`, `JIRA_BOARD_ID` (offered for shell-rc persistence).
   - Token: Atlassian API token (Cloud) or Personal Access Token (Server / DC)
 - **jira-ticket** — Create or comment on Jira tickets in your configured project with structured descriptions; supports create / comment / update-description modes, sprint placement, epic linking, and labels. Auto-invokes `jira-setup` if anything's missing.
-  - MCP: `mcp-atlassian` (registered on demand via `setup-mcp`; not bundled)
+  - MCP: `mcp-atlassian` (registered on demand via `jira-setup`; not bundled)
   - Env: same as `jira-setup`
 - **shortify** — Review and shorten markdown docs in subdirectories, plus code comments and docstrings (manual/session opt-in) — cut wordiness, redundancy, and code duplication.
 - **session-review** — Full review pass over the current branch: runs `code-review`, `simplify`, `ponytail:ponytail-review` and `shortify` in order, applying fixes between steps.
@@ -43,8 +43,6 @@ A Claude Code plugin bundling developer productivity skills.
 - **screenshots** — Run the project's existing Playwright tests, collect the screenshots they write (inline `page.screenshot()` calls by default; `screenshot: 'on'` per test with `--screenshot-on`), and post-process them into a single self-contained `index.html` (base64-embedded). By default scoped to the tests worked on in the current session; `/screenshots all` reports the full suite. PR-ready visual record; no parallel capture script to maintain.
   - CLI: `npx`/`node` or `pytest`/`uv`, plus `playwright` browsers (`playwright install chromium`)
   - CLI: `git`
-- **setup-mcp** — Register a known MCP server (from the curated `mcps.json` manifest) into `./.mcp.json` or the user's Claude Code config. Bounded to vetted entries; refuses unknown names. Use to install `github`, `mcp-atlassian`, or any future entry added to the manifest.
-  - CLI: `claude` (for `claude mcp add`), plus whatever the chosen MCP entry requires (`docker`, `uvx`, ...)
 - **claudeai-setup** — Scaffold a project's `claudeai/` scripts (`_guard.sh`, `run.sh`, one `setup_<svc>.sh` per service) and its project-level `claudeai-run` skill, so a Claude Code web (cloud) session can start the backing services CI gets from Docker. Services come from the project's CI or from the user.
   - CLI: `bash`, `curl`
 - **ssh-docker-debug** — Discover and tail logs for Docker containers running on a remote VM over SSH (read-only).
