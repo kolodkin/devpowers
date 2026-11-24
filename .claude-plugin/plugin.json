@@ -1,7 +1,7 @@
 {
   "name": "devpowers",
   "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, Jira setup and ticket creator, markdown shortener, ASCII UI sketcher, local/remote Docker debuggers, cloud-session service scaffolding (claudeai-setup), an e2e UI screenshot report generator, and a bottom-line output style for terse chat replies.",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "author": {
     "name": "kolodkin"
   },
