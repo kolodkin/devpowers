@@ -10,6 +10,18 @@ statement's ID (at unit, a test beside the module). A change walks down the
 docs, writing a failing test at each layer, then up the tests. When a plan
 splits the work into tasks, each task follows this skill.
 
+```
+ down: statement, then a failing test          up: run the tests
+
+ User          statement ............................... test
+ System           statement ........................ test
+ Integration         statement ................. test
+ Unit                   docstring .......... test
+                                    code
+```
+
+Each dotted line is one pairing: an ID above unit, the file name at unit.
+
 ## Project skill
 
 This skill is the method. A project extends it with its own skill, by
