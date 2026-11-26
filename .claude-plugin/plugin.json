@@ -1,10 +1,10 @@
 {
   "name": "devpowers",
-  "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, Jira setup and ticket creator, markdown shortener, ASCII UI sketcher, local/remote Docker debuggers, cloud-session service scaffolding (claudeai-setup), an e2e UI screenshot report generator, and a bottom-line output style for terse chat replies.",
-  "version": "1.19.0",
+  "description": "Developer productivity skills: GitHub Actions runner and checker, PR/CI status checker, Jira setup and ticket creator, markdown shortener, ASCII UI sketcher, V-model doc/test method (vmodel), local/remote Docker debuggers, cloud-session service scaffolding (claudeai-setup), an e2e UI screenshot report generator, and a bottom-line output style for terse chat replies.",
+  "version": "1.20.0",
   "author": {
     "name": "kolodkin"
   },
   "homepage": "https://github.com/kolodkin/devpowers",
-  "keywords": ["git", "github", "actions", "workflow", "ci", "pr", "pull-request", "review", "skill", "install", "markdown", "docs", "shortify", "ascii-sketch", "mermaid-sketch", "mermaid", "ascii", "layout", "diagram", "docker", "ssh", "debug", "logs", "mcp", "setup", "e2e", "screenshots", "playwright", "report", "claudeai", "cloud", "services", "jira", "atlassian", "ticket", "issue", "output-style", "concise", "terse"]
+  "keywords": ["git", "github", "actions", "workflow", "ci", "pr", "pull-request", "review", "skill", "install", "markdown", "docs", "shortify", "ascii-sketch", "vmodel", "testing", "mermaid-sketch", "mermaid", "ascii", "layout", "diagram", "docker", "ssh", "debug", "logs", "mcp", "setup", "e2e", "screenshots", "playwright", "report", "claudeai", "cloud", "services", "jira", "atlassian", "ticket", "issue", "output-style", "concise", "terse"]
 }
