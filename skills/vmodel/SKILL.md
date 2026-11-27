@@ -50,7 +50,7 @@ tell the user the mapping before using it.
 | Implementation | Unit | one module's logic, in its docstring or leading comment | the module, from the test file beside it, no ID |
 
 A project may merge or drop a layer; its table says so. Docs for
-developers (testing, debugging, release) sit outside the V: no IDs, no
+contributors (testing, debugging, release) sit outside the V: no IDs, no
 tests.
 
 ## Docs layout
@@ -63,7 +63,7 @@ docs/
   user_guide/      User: published; what a user calls, runs, sees, configures
   architecture/    Architecture: topology, deployment, data model, wire contracts, security
   designs/         Design: how components work together inside the system
-  dev/             outside the V: testing, debugging, technical debt, release
+  contributor/     outside the V: testing, debugging, technical debt, release
 <module>           Implementation: its docstring or leading comment
 ```
 
