@@ -13,7 +13,7 @@ splits the work into tasks, each task follows this skill.
 ```
  down: statement, then a failing test          up: run the tests
 
- User             statement ............................ acceptance test
+ Operational      statement ............................ acceptance test
   Architecture       statement ..................... system test
    Design               statement .............. integration test
     Implementation         docstring ....... unit test
@@ -44,7 +44,7 @@ tell the user the mapping before using it.
 
 | Doc layer | Test layer | Doc of record states | A test covers |
 |---|---|---|---|
-| User | Acceptance | what a user calls, runs, sees or configures | a journey through the public interface, end to end |
+| Operational | Acceptance | the operational requirements: what a user or operator calls, runs, sees or configures (a user guide for an app, product requirements for a data engine) | a journey through the public interface, end to end |
 | Architecture | System | the architecture: topology, deployment modes, data model, wire contracts, security model, limits | the system through its real interfaces (HTTP, CLI, protocol), on each supported backend |
 | Design | Integration | a design inside the system: how components work together | several internal modules driven together |
 | Implementation | Unit | one module's logic, in its docstring or leading comment | the module, from the test file beside it, no ID |
@@ -60,7 +60,8 @@ change it.
 
 ```
 docs/
-  user_guide/      User: published; what a user calls, runs, sees, configures
+  user_guide/      Operational: published; what a user calls, runs, sees, configures
+                   (or product_requirements/, etc., for a product with no user guide)
   architecture/    Architecture: topology, deployment, data model, wire contracts, security
   designs/         Design: how components work together inside the system
   contributor/     outside the V: testing, debugging, technical debt, release
@@ -106,7 +107,7 @@ A unit test names no ID.
 
 1. **Name the entry layer: the highest one the change touches.** Anything a
    user calls, runs, sees or configures (a command, a screen, an error, a
-   default, a public API signature): user. Topology, a data model, a wire
+   default, a public API signature): operational. Topology, a data model, a wire
    contract, the security model: architecture. How internal components
    work together: design. Logic inside one module: implementation.
 2. **Go down, one layer at a time, from the entry to implementation.** At
@@ -170,7 +171,7 @@ behavior: no history, no proposals. Copy the shape of the nearest page, and
 end with the `shortify` checklist on the pages you touched.
 
 **IMPORTANT: one fact, one layer.** State a fact once, at the highest layer
-it belongs to: what a user can observe goes in User. Lower layers link up to
+it belongs to: what a user can observe goes in Operational. Lower layers link up to
 it and add only their own detail: the rule in Architecture, the mechanism in
 Design. A sentence repeated across layers is a bug.
 
