@@ -6,21 +6,22 @@ description: Use when a change alters behavior, before writing its doc, test or 
 # V-model
 
 Every behavior has a statement in a doc of record, and a test that names the
-statement's ID (at unit, a test beside the module). A change walks down the
+statement's ID (at implementation, a test beside the module). A change walks down the
 docs, writing a failing test at each layer, then up the tests. When a plan
 splits the work into tasks, each task follows this skill.
 
 ```
  down: statement, then a failing test          up: run the tests
 
- User          statement ............................... test
- System           statement ........................ test
- Integration         statement ................. test
- Unit                   docstring .......... test
+ User             statement ............................ acceptance test
+  Architecture       statement ..................... system test
+   Design               statement .............. integration test
+    Implementation         docstring ....... unit test
                                     code
 ```
 
-Each dotted line is one pairing: an ID above unit, the file name at unit.
+Each dotted line is one pairing: an ID above implementation, the file name at
+implementation.
 
 ## Project skill
 
@@ -41,12 +42,12 @@ tell the user the mapping before using it.
 
 ## Layers
 
-| Layer | Doc of record states | A test covers |
-|---|---|---|
-| User | what a user calls, runs, sees or configures | a journey through the public interface, end to end |
-| System | the architecture: topology, deployment modes, data model, wire contracts, security model, limits | the system through its real interfaces (HTTP, CLI, protocol), on each supported backend |
-| Integration | a design inside the system: how components work together | several internal modules driven together |
-| Unit | one module's logic, in its docstring or leading comment | the module, from the test file beside it, no ID |
+| Doc layer | Test layer | Doc of record states | A test covers |
+|---|---|---|---|
+| User | Acceptance | what a user calls, runs, sees or configures | a journey through the public interface, end to end |
+| Architecture | System | the architecture: topology, deployment modes, data model, wire contracts, security model, limits | the system through its real interfaces (HTTP, CLI, protocol), on each supported backend |
+| Design | Integration | a design inside the system: how components work together | several internal modules driven together |
+| Implementation | Unit | one module's logic, in its docstring or leading comment | the module, from the test file beside it, no ID |
 
 A project may merge or drop a layer; its table says so. Docs for
 developers (testing, debugging, release) sit outside the V: no IDs, no
@@ -59,7 +60,7 @@ slug. The doc defines it on the line above the statement, writing only the
 slug, since the page gives the prefix:
 
 ```md
-<!-- in <docs root>/system/export.md: system/export/csv-download -->
+<!-- in <docs root>/user/export.md: user/export/csv-download -->
 <!-- req: csv-download -->
 A user can download the current result as CSV.
 ```
@@ -68,7 +69,7 @@ A test names the full ID in a comment directly above the test or group, in
 the language's comment syntax; several IDs are comma-separated:
 
 ```py
-# req: system/export/csv-download
+# req: user/export/csv-download
 def test_csv_download():
 ```
 
@@ -89,10 +90,10 @@ A unit test names no ID.
 1. **Name the entry layer: the highest one the change touches.** Anything a
    user calls, runs, sees or configures (a command, a screen, an error, a
    default, a public API signature): user. Topology, a data model, a wire
-   contract, the security model: system. How internal components work
-   together: integration. Logic inside one module: unit.
-2. **Go down, one layer at a time, from the entry to unit.** At each layer
-   above unit:
+   contract, the security model: architecture. How internal components
+   work together: design. Logic inside one module: implementation.
+2. **Go down, one layer at a time, from the entry to implementation.** At
+   each layer above implementation:
    - write or edit the statement in its doc of record;
    - give it an ID, or keep its existing one. How fine an ID is, is a
      judgment: give one per behavior a reader would call a separate promise.
@@ -102,8 +103,8 @@ A unit test names no ID.
      default is a changed statement: its test asserts the new value. The
      failing test may be an existing one whose assertion changes.
 
-   At unit: edit the module's docstring or leading comment and the test beside
-   the module; no ID, no marker.
+   At implementation: edit the module's docstring or leading comment and the
+   test beside the module; no ID, no marker.
 
    For a layer the change does not alter, write one line: `Skipping <layer>:
    <why>.`
