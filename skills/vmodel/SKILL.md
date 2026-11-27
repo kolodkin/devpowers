@@ -112,6 +112,8 @@ A unit test names no ID.
 2. **Go down, one layer at a time, from the entry to implementation.** At
    each layer above implementation:
    - write or edit the statement in its doc of record;
+   - if it settles a non-trivial choice (one solution or technology over
+     another), add or update its `## Why` (see "Where a decision goes");
    - give it an ID, or keep its existing one. How fine an ID is, is a
      judgment: give one per behavior a reader would call a separate promise.
      Test an edge case of one behavior under the same ID, or at a lower
