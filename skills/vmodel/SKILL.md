@@ -44,7 +44,7 @@ tell the user the mapping before using it.
 
 | Doc layer | Test layer | Doc of record states | A test covers |
 |---|---|---|---|
-| Requirements | Acceptance | the requirements: what a user or operator calls, runs, sees or configures (a user guide for an app, product requirements for a data engine) | a journey through the public interface, end to end |
+| Requirements / user guide (for apps) | Acceptance | what a user or operator calls, runs, sees or configures | a journey through the public interface, end to end |
 | Architecture | System | the architecture: topology, deployment modes, data model, wire contracts, security model, limits | the system through its real interfaces (HTTP, CLI, protocol), on each supported backend |
 | Design | Integration | a design inside the system: how components work together | several internal modules driven together |
 | Implementation | Unit | one module's logic, in its docstring or leading comment | the module, from the test file beside it, no ID |
