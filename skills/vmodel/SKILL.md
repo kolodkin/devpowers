@@ -43,12 +43,14 @@ tell the user the mapping before using it.
 
 | Layer | Doc of record states | A test covers |
 |---|---|---|
-| User | a user need, with no design | a need end to end |
-| System | what a user can see or set | one feature through its real interface |
-| Integration | a contract between components | components working together |
+| User | what a user calls, runs, sees or configures | a journey through the public interface, end to end |
+| System | the architecture: topology, deployment modes, data model, wire contracts, security model, limits | the system through its real interfaces (HTTP, CLI, protocol), on each supported backend |
+| Integration | a design inside the system: how components work together | several internal modules driven together |
 | Unit | one module's logic, in its docstring or leading comment | the module, from the test file beside it, no ID |
 
-A project may merge or drop a layer; its table says so.
+A project may merge or drop a layer; its table says so. Docs for
+contributors (testing, debugging, release) sit outside the V: no IDs, no
+tests.
 
 ## Markers
 
@@ -84,10 +86,11 @@ A unit test names no ID.
 
 ## Steps
 
-1. **Name the entry layer: the highest one the change touches.** A new or
-   changed user need: user. Anything a user can see or set (a screen, a
-   label, an error, a limit, a default, a public API signature): system. A
-   contract between components: integration. Logic inside one module: unit.
+1. **Name the entry layer: the highest one the change touches.** Anything a
+   user calls, runs, sees or configures (a command, a screen, an error, a
+   default, a public API signature): user. Topology, a data model, a wire
+   contract, the security model: system. How internal components work
+   together: integration. Logic inside one module: unit.
 2. **Go down, one layer at a time, from the entry to unit.** At each layer
    above unit:
    - write or edit the statement in its doc of record;
