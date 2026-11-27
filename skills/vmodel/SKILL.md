@@ -167,6 +167,11 @@ A page holds one layer's content, in the present tense, describing current
 behavior: no history, no proposals. Copy the shape of the nearest page, and
 end with the `shortify` checklist on the pages you touched.
 
+**IMPORTANT: one fact, one layer.** State a fact once, at the highest layer
+it belongs to: what a user can observe goes in User. Lower layers link up to
+it and add only their own detail: the rule in Architecture, the mechanism in
+Design. A sentence repeated across layers is a bug.
+
 ## Writing a test
 
 Put a test in the lowest layer that can observe the behavior, and start from
