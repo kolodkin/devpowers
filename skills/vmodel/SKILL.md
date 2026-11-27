@@ -60,8 +60,8 @@ change it.
 
 ```
 docs/
-  user_guide/      Requirements: published; what a user calls, runs, sees, configures
-                   (or product_requirements/, etc., for a product with no user guide)
+  requirements/    Requirements: published; what a user calls, runs, sees, configures
+                   (user_guide/ for apps)
   architecture/    Architecture: topology, deployment, data model, wire contracts, security
   designs/         Design: how components work together inside the system
   contributor/     outside the V: testing, debugging, technical debt, release
