@@ -74,7 +74,7 @@ slug. The doc defines it on the line above the statement, writing only the
 slug, since the page gives the prefix:
 
 ```md
-<!-- in <docs root>/user_guide/export.md: user_guide/export/csv-download -->
+<!-- in <docs root>/requirements/export.md: requirements/export/csv-download -->
 <!-- req: csv-download -->
 A user can download the current result as CSV.
 ```
@@ -83,7 +83,7 @@ A test names the full ID in a comment directly above the test or group, in
 the language's comment syntax; several IDs are comma-separated:
 
 ```py
-# req: user_guide/export/csv-download
+# req: requirements/export/csv-download
 def test_csv_download():
 ```
 
