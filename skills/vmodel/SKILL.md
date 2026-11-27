@@ -97,6 +97,9 @@ share tests. A shared test lives in the higher layer's location and names
 both IDs. When such a test already walks the lower statement, add that
 statement's ID to its marker; do not write a second test for it.
 
+Two layers is the limit: a test naming IDs from three layers is doing too
+much — split it.
+
 A unit test names no ID.
 
 ## Steps
