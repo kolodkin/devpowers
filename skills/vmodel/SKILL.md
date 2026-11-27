@@ -49,7 +49,7 @@ tell the user the mapping before using it.
 | Unit | one module's logic, in its docstring or leading comment | the module, from the test file beside it, no ID |
 
 A project may merge or drop a layer; its table says so. Docs for
-contributors (testing, debugging, release) sit outside the V: no IDs, no
+developers (testing, debugging, release) sit outside the V: no IDs, no
 tests.
 
 ## Markers
