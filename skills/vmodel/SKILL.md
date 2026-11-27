@@ -53,6 +53,20 @@ A project may merge or drop a layer; its table says so. Docs for
 developers (testing, debugging, release) sit outside the V: no IDs, no
 tests.
 
+## Docs layout
+
+The default layout, with `docs/` as the docs root. A project skill may
+change it.
+
+```
+docs/
+  user_guide/      User: published; what a user calls, runs, sees, configures
+  architecture/    Architecture: topology, deployment, data model, wire contracts, security
+  designs/         Design: how components work together inside the system
+  dev/             outside the V: testing, debugging, technical debt, release
+<module>           Implementation: its docstring or leading comment
+```
+
 ## Markers
 
 An ID is the page's path under the docs root without `.md`, then a kebab-case
@@ -60,7 +74,7 @@ slug. The doc defines it on the line above the statement, writing only the
 slug, since the page gives the prefix:
 
 ```md
-<!-- in <docs root>/user/export.md: user/export/csv-download -->
+<!-- in <docs root>/user_guide/export.md: user_guide/export/csv-download -->
 <!-- req: csv-download -->
 A user can download the current result as CSV.
 ```
@@ -69,7 +83,7 @@ A test names the full ID in a comment directly above the test or group, in
 the language's comment syntax; several IDs are comma-separated:
 
 ```py
-# req: user/export/csv-download
+# req: user_guide/export/csv-download
 def test_csv_download():
 ```
 
