@@ -112,6 +112,8 @@ A unit test names no ID.
 2. **Go down, one layer at a time, from the entry to implementation.** At
    each layer above implementation:
    - write or edit the statement in its doc of record;
+   - if it settles a non-trivial choice (one solution or technology over
+     another), add or update its `## Why` (see "Where a decision goes");
    - give it an ID, or keep its existing one. How fine an ID is, is a
      judgment: give one per behavior a reader would call a separate promise.
      Test an edge case of one behavior under the same ID, or at a lower
@@ -159,7 +161,7 @@ skips the steps above; the doc and test rules still apply.
 A design decision (why this solution or technology) carries no ID: it explains
 a statement, and no test proves it. It sits beside what it explains, as a
 `## Why` section on that page, at that page's layer. A choice that spans
-several pages goes in that layer's `decisions.md`.
+several pages sits on the page that states its rule; the others link to it.
 
 ## Writing a doc
 
