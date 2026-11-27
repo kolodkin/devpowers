@@ -53,9 +53,9 @@ A project may merge or drop a layer; its table says so. Docs for
 contributors (testing, debugging, release) sit outside the V: no IDs, no
 tests.
 
-## Docs layout
+## Recommended docs layout
 
-The default layout, with `docs/` as the docs root. A project skill may
+The recommended layout, with `docs/` as the docs root. A project skill may
 change it.
 
 ```
