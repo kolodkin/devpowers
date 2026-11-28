@@ -12,7 +12,7 @@ Scope: the current branch's diff against the default branch (e.g. `git diff orig
 1. `code-review`
 2. `simplify`
 3. `ponytail:ponytail-review`
-4. `devpowers:vmodel` — check every behavior change has its statement in a doc of record and a test naming its ID
+4. `devpowers:vmodel` — its "Reviewing a change" section
 5. `devpowers:shortify`
 
 Apply each skill's fixes before the next. Report only at the end: what was fixed, and what was deferred and why.

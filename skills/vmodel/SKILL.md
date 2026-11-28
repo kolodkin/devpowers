@@ -1,6 +1,6 @@
 ---
 name: vmodel
-description: Use when a change alters behavior, before writing its doc, test or code; when adding or changing a test; and when adding or editing a doc of record. The generic V-model method - a project's own `vmodel` skill extends it with its layers, paths and commands.
+description: Use when a change alters behavior, before writing its doc, test or code; when adding or changing a test; when adding or editing a doc of record; and when reviewing a change. The generic V-model method - a project's own `vmodel` skill extends it with its layers, paths and commands.
 ---
 
 # V-model
@@ -155,6 +155,22 @@ test file; its skill says so.
 
 A pure refactor, a comment, or a docs wording fix that changes no behavior
 skips the steps above; the doc and test rules still apply.
+
+## Reviewing a change
+
+Audit a finished diff; do not walk the steps again. For each behavior the
+diff changes, name its entry layer (step 1), then check:
+
+- each layer from the entry down has its statement edited, or a
+  `Skipping <layer>` reason that holds;
+- each statement above implementation has an ID, and a test in that layer's
+  "Proved in" location names it and asserts the new behavior;
+- the module's docstring or leading comment matches the code;
+- no slug a test names was reworded, and no fact is repeated across layers;
+- every layer's tests pass (step 4).
+
+Fix what is missing: add the statement and its test, as in step 2. A refactor
+or wording fix passes when no statement or test needed to change.
 
 ## Where a decision goes
 
