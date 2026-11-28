@@ -37,7 +37,7 @@ The GitHub skills need `GH_TOKEN` set.
   - MCP: `mcp-atlassian` (registered on demand via `jira-setup`; not bundled)
   - Env: same as `jira-setup`
 - **shortify** — Review and shorten markdown docs in subdirectories, plus code comments and docstrings (manual/session opt-in) — cut wordiness, redundancy, and code duplication.
-- **session-review** — Full review pass over the current branch: runs `code-review`, `simplify`, `ponytail:ponytail-review` and `shortify` in order, applying fixes between steps.
+- **session-review** — Full review pass over the current branch: runs `code-review`, `simplify`, `ponytail:ponytail-review`, `vmodel` and `shortify` in order, applying fixes between steps.
   - Plugins: `ponytail` (for `ponytail-review`; skipped if absent)
 - **vmodel** — The generic V-model method: every behavior has a statement in a doc of record and a test naming its `req:` ID; a change walks down the docs writing a failing test per layer, then up the tests. A project extends it with its own `vmodel` skill naming its layers, paths and commands.
 - **ascii-sketch** — Draw a plain-ASCII sketch of a screen, panel, modal or architecture/network diagram for a doc page, design note or chat answer: boxes from `+ - |`, a bullet per control, no box-drawing characters so it renders the same in any font.
