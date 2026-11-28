@@ -158,19 +158,19 @@ skips the steps above; the doc and test rules still apply.
 
 ## Reviewing a change
 
-Audit a finished diff; do not walk the steps again. For each behavior the
-diff changes, name its entry layer (step 1), then check:
+Audit the docs and tests the diff touches; do not walk the steps again.
+Check three things:
 
-- each layer from the entry down has its statement edited, or a
-  `Skipping <layer>` reason that holds;
-- each statement above implementation has an ID, and a test in that layer's
-  "Proved in" location names it and asserts the new behavior;
-- the module's docstring or leading comment matches the code;
-- no slug a test names was reworded, and no fact is repeated across layers;
-- every layer's tests pass (step 4).
+1. **Layers.** Each statement sits at the layer whose doc of record fits it
+   (see "Layers"), and each test sits in its layer's "Proved in" location.
+2. **Dedup.** One fact, one layer: no statement repeated across or within
+   layers, and no two tests proving the same ID the same way.
+3. **Links, both ways.** Every statement above implementation has an ID and
+   a test that names it; every ID a test names exists in a doc.
 
-Fix what is missing: add the statement and its test, as in step 2. A refactor
-or wording fix passes when no statement or test needed to change.
+Fix what fails: move a statement or test to its layer, cut the repeat and
+link up to the kept one, add the missing ID or test, or fix the dangling
+marker.
 
 ## Where a decision goes
 
